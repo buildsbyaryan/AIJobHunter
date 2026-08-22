@@ -15,28 +15,59 @@ export default function JobCard({
   salary,
 }: JobCardProps) {
   const [isSaved, setIsSaved] = useState(false);
+
+  const [showDetails, setShowDetails] = useState(false);
+
   return (
     <View style={styles.jobCard}>
+      {/* Company */}
       <Text style={styles.company}>{company}</Text>
 
+      {/* Job Title */}
       <Text style={styles.jobTitle}>{title}</Text>
 
+      {/* Location */}
       <Text style={styles.location}>📍 {location}</Text>
 
+      {/* Salary */}
       <Text style={styles.salary}>{salary}</Text>
 
-      <Pressable style={styles.viewButton} onPress={() => setIsSaved(!isSaved)}>
-        <Text style={styles.viewButtonText}>
-          {isSaved ? "Saved ✓" : "Save Job"}
+      {/* Details */}
+      {showDetails && (
+        <Text style={styles.description}>
+          Build scalable applications and work with modern technologies.
         </Text>
-      </Pressable>
+      )}
+
+      {/* Buttons */}
+      <View style={styles.buttonContainer}>
+        <Pressable
+          style={styles.detailsButton}
+          onPress={() => setShowDetails(!showDetails)}
+        >
+          <Text style={styles.detailsButtonText}>
+            {showDetails ? "Hide Details" : "View Details"}
+          </Text>
+        </Pressable>
+
+        <Pressable
+          style={[styles.saveButton, isSaved && styles.savedButton]}
+          onPress={() => setIsSaved(!isSaved)}
+        >
+          <Text
+            style={[styles.saveButtonText, isSaved && styles.savedButtonText]}
+          >
+            {isSaved ? "Saved ✓" : "Save Job"}
+          </Text>
+        </Pressable>
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   jobCard: {
-    marginTop: 30,
+    marginTop: 20,
     padding: 20,
     borderRadius: 18,
     backgroundColor: "#f5f5f5",
@@ -52,6 +83,7 @@ const styles = StyleSheet.create({
     fontSize: 21,
     fontWeight: "700",
     marginTop: 6,
+    color: "#111111",
   },
 
   location: {
@@ -64,19 +96,57 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: "600",
     marginTop: 8,
+    color: "#111111",
   },
 
-  viewButton: {
+  description: {
+    fontSize: 14,
+    lineHeight: 21,
+    color: "#666666",
+    marginTop: 15,
+  },
+
+  buttonContainer: {
+    flexDirection: "row",
+    gap: 10,
     marginTop: 18,
-    backgroundColor: "#111111",
+  },
+
+  detailsButton: {
+    flex: 1,
     paddingVertical: 12,
     borderRadius: 10,
     alignItems: "center",
+    backgroundColor: "#111111",
   },
 
-  viewButtonText: {
+  detailsButtonText: {
     color: "#ffffff",
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: "600",
+  },
+
+  saveButton: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 10,
+    alignItems: "center",
+    backgroundColor: "#ffffff",
+    borderWidth: 1,
+    borderColor: "#111111",
+  },
+
+  saveButtonText: {
+    color: "#111111",
+    fontSize: 14,
+    fontWeight: "600",
+  },
+
+  savedButton: {
+    backgroundColor: "#111111",
+  },
+
+  savedButtonText: {
+    color: "#ffffff",
   },
 });

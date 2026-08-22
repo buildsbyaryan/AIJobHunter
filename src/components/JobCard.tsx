@@ -1,21 +1,34 @@
+import { useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
-export default function JobCard() {
+interface JobCardProps {
+  company: string;
+  title: string;
+  location: string;
+  salary: string;
+}
+
+export default function JobCard({
+  company,
+  title,
+  location,
+  salary,
+}: JobCardProps) {
+  const [isSaved, setIsSaved] = useState(false);
   return (
     <View style={styles.jobCard}>
-      <Text style={styles.company}>Google</Text>
+      <Text style={styles.company}>{company}</Text>
 
-      <Text style={styles.jobTitle}>Software Engineer</Text>
+      <Text style={styles.jobTitle}>{title}</Text>
 
-      <Text style={styles.location}>📍 Bangalore</Text>
+      <Text style={styles.location}>📍 {location}</Text>
 
-      <Text style={styles.salary}>₹8–15 LPA</Text>
+      <Text style={styles.salary}>{salary}</Text>
 
-      <Pressable
-        style={styles.viewButton}
-        onPress={() => console.log("View Job pressed")}
-      >
-        <Text style={styles.viewButtonText}>View Job</Text>
+      <Pressable style={styles.viewButton} onPress={() => setIsSaved(!isSaved)}>
+        <Text style={styles.viewButtonText}>
+          {isSaved ? "Saved ✓" : "Save Job"}
+        </Text>
       </Pressable>
     </View>
   );

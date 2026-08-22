@@ -25,7 +25,24 @@ export default function HomeScreen() {
         </Pressable>
       </View>
       {/* Job Card */}
-      <JobCard />
+      <JobCard
+        company="Google"
+        title="Software Engineer"
+        location="Bangalore"
+        salary="₹8–15 LPA"
+      />
+      <JobCard
+        company="Microsoft"
+        title="Frontend Developer"
+        location="Hyderabad"
+        salary="₹10–18 LPA"
+      />
+      <JobCard
+        company="Amazon"
+        title="Backend Developer"
+        location="Gurgaon"
+        salary="₹12–20 LPA"
+      />
     </View>
   );
 }

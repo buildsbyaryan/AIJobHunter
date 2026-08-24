@@ -1,6 +1,14 @@
 import { useState } from "react";
 
-import { FlatList, StyleSheet, Text, TextInput, View } from "react-native";
+import {
+  FlatList,
+  Keyboard,
+  Pressable,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
 
 import JobCard from "../components/JobCard";
 
@@ -73,18 +81,41 @@ export default function HomeScreen() {
         </Text>
 
         {/* Search */}
-        <TextInput
-          style={styles.searchInput}
-          placeholder="Search jobs..."
-          value={searchText}
-          onChangeText={setSearchText}
-        />
+        <View style={styles.searchContainer}>
+          <Text style={styles.searchIcon}>🔍</Text>
+
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search jobs..."
+            placeholderTextColor="#999999"
+            value={searchText}
+            onChangeText={setSearchText}
+            returnKeyType="search"
+            onSubmitEditing={() => Keyboard.dismiss()}
+          />
+
+          {searchText.length > 0 && (
+            <Pressable
+              style={styles.clearButton}
+              onPress={() => {
+                setSearchText("");
+                Keyboard.dismiss();
+              }}
+            >
+              <Text style={styles.clearButtonText}>✕</Text>
+            </Pressable>
+          )}
+        </View>
 
         {/* SEARCH RESULT */}
 
         {searchText.length > 0 && (
           <Text style={styles.searchResult}>
-            {filteredJobs.length} jobs found
+            {filteredJobs.length === 0
+              ? "No jobs found"
+              : `${filteredJobs.length} ${
+                  filteredJobs.length === 1 ? "job" : "jobs"
+                } found`}
           </Text>
         )}
 
@@ -143,15 +174,43 @@ const styles = StyleSheet.create({
     marginTop: 18,
   },
 
-  searchInput: {
-    height: 52,
+  searchContainer: {
+    height: 54,
+    flexDirection: "row",
+    alignItems: "center",
     borderWidth: 1,
     borderColor: "#dddddd",
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    fontSize: 16,
+    borderRadius: 14,
+    paddingHorizontal: 14,
     marginTop: 30,
+    backgroundColor: "#fafafa",
+  },
+
+  searchIcon: {
+    fontSize: 18,
+    marginRight: 8,
+  },
+
+  searchInput: {
+    flex: 1,
+    height: "100%",
+    fontSize: 16,
     color: "#111111",
+  },
+
+  clearButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#eeeeee",
+  },
+
+  clearButtonText: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#555555",
   },
 
   searchResult: {

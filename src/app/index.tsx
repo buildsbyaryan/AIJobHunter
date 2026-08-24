@@ -45,6 +45,17 @@ export default function HomeScreen() {
     },
   ];
 
+  // FILTER JOBS
+  const filteredJobs = jobs.filter((job) => {
+    const search = searchText.toLowerCase();
+
+    return (
+      job.company.toLowerCase().includes(search) ||
+      job.title.toLowerCase().includes(search) ||
+      job.location.toLowerCase().includes(search)
+    );
+  });
+
   return (
     <View style={styles.container}>
       {/* Header */}
@@ -69,8 +80,12 @@ export default function HomeScreen() {
           onChangeText={setSearchText}
         />
 
+        {/* SEARCH RESULT */}
+
         {searchText.length > 0 && (
-          <Text style={styles.searchResult}>Searching for: {searchText}</Text>
+          <Text style={styles.searchResult}>
+            {filteredJobs.length} jobs found
+          </Text>
         )}
 
         <Text style={styles.sectionTitle}>Recommended Jobs</Text>
@@ -90,6 +105,7 @@ export default function HomeScreen() {
         )}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.listContent}
+        ListEmptyComponent={<Text style={styles.noJobs}>No jobs found 😔</Text>}
       />
     </View>
   );
@@ -154,5 +170,11 @@ const styles = StyleSheet.create({
   listContent: {
     paddingHorizontal: 28,
     paddingBottom: 40,
+  },
+  noJobs: {
+    textAlign: "center",
+    marginTop: 40,
+    fontSize: 16,
+    color: "#666666",
   },
 });

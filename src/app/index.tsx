@@ -11,47 +11,11 @@ import {
 } from "react-native";
 
 import JobCard from "../components/JobCard";
+import { jobs } from "@/data/jobs";
 
 export default function HomeScreen() {
   const [searchText, setSearchText] = useState("");
 
-  const jobs = [
-    {
-      id: "1",
-      company: "Google",
-      title: "Software Engineer",
-      location: "Bangalore",
-      salary: "₹8–15 LPA",
-    },
-    {
-      id: "2",
-      company: "Microsoft",
-      title: "Frontend Developer",
-      location: "Hyderabad",
-      salary: "₹10–18 LPA",
-    },
-    {
-      id: "3",
-      company: "Amazon",
-      title: "Backend Developer",
-      location: "Gurgaon",
-      salary: "₹12–20 LPA",
-    },
-    {
-      id: "4",
-      company: "TCS",
-      title: "Java Developer",
-      location: "Pune",
-      salary: "₹5–9 LPA",
-    },
-    {
-      id: "5",
-      company: "Infosys",
-      title: "React Native Developer",
-      location: "Noida",
-      salary: "₹6–10 LPA",
-    },
-  ];
 
   // FILTER JOBS
   const filteredJobs = jobs.filter((job) => {

@@ -1,10 +1,13 @@
-export const jobs = [
+import { Job } from "../types/job";
+
+export const jobs: Job[] = [
   {
     id: "1",
     company: "Google",
     title: "Software Engineer",
     location: "Bangalore",
     salary: "₹8–15 LPA",
+    type: "Full Time"
   },
 
   {
@@ -13,6 +16,7 @@ export const jobs = [
     title: "Frontend Developer",
     location: "Hyderabad",
     salary: "₹10–18 LPA",
+    type: "Full Time"
   },
 
   {
@@ -21,6 +25,7 @@ export const jobs = [
     title: "Backend Developer",
     location: "Gurgaon",
     salary: "₹12–20 LPA",
+    type: "Internship"
   },
 
   {
@@ -29,6 +34,7 @@ export const jobs = [
     title: "Java Developer",
     location: "Pune",
     salary: "₹5–9 LPA",
+    type: "Internship"
   },
 
   {
@@ -37,6 +43,7 @@ export const jobs = [
     title: "React Native Developer",
     location: "Noida",
     salary: "₹6–10 LPA",
+    type: "Internship"
   },
 
   {
@@ -45,7 +52,8 @@ export const jobs = [
     title: "Mobile App Developer",
     location: "Bangalore",
     salary: "₹9–16 LPA",
-  },
+type: "Internship"  
+},
 
   {
     id: "7",
@@ -53,5 +61,6 @@ export const jobs = [
     title: "Java Backend Developer",
     location: "Chennai",
     salary: "₹6–11 LPA",
+    type: "Internship"
   },
 ];

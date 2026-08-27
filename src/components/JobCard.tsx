@@ -2,7 +2,10 @@ import { useState } from "react";
 
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
+import { router } from "expo-router";
+
 interface JobCardProps {
+  id: string;
   company: string;
   title: string;
   location: string;
@@ -12,6 +15,7 @@ interface JobCardProps {
 }
 
 export default function JobCard({
+  id,
   company,
   title,
   location,
@@ -21,49 +25,46 @@ export default function JobCard({
 }: JobCardProps) {
   const [isSaved, setIsSaved] = useState(false);
 
-  const [showDetails, setShowDetails] = useState(false);
-
   return (
     <View style={styles.jobCard}>
-      {/* Company */}
-
       <Text style={styles.company}>{company}</Text>
-
-      {/* Job Title */}
 
       <Text style={styles.jobTitle}>{title}</Text>
 
-      {/* Location */}
-
       <Text style={styles.location}>📍 {location}</Text>
-
-      {/* Salary */}
 
       <Text style={styles.salary}>💰 {salary}</Text>
 
-      {/* Job Type */}
-
       <Text style={styles.type}>💼 {type}</Text>
 
-      {/* Description */}
-
-      {showDetails && <Text style={styles.description}>{description}</Text>}
-
-      {/* Buttons */}
+      <Text style={styles.description} numberOfLines={2}>
+        {description}
+      </Text>
 
       <View style={styles.buttonContainer}>
+        {/* VIEW DETAILS */}
+
         <Pressable
           style={styles.detailsButton}
-          onPress={() => setShowDetails(!showDetails)}
+          onPress={() => {
+            router.push({
+              pathname: "/job/[id]",
+              params: {
+                id: id,
+              },
+            });
+          }}
         >
-          <Text style={styles.detailsButtonText}>
-            {showDetails ? "Hide Details" : "View Details"}
-          </Text>
+          <Text style={styles.detailsButtonText}>View Details</Text>
         </Pressable>
+
+        {/* SAVE */}
 
         <Pressable
           style={[styles.saveButton, isSaved && styles.savedButton]}
-          onPress={() => setIsSaved(!isSaved)}
+          onPress={() => {
+            setIsSaved(!isSaved);
+          }}
         >
           <Text
             style={[styles.saveButtonText, isSaved && styles.savedButtonText]}
@@ -120,7 +121,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 21,
     color: "#666666",
-    marginTop: 15,
+    marginTop: 12,
   },
 
   buttonContainer: {

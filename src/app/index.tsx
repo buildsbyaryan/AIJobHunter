@@ -106,6 +106,7 @@ export default function HomeScreen() {
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
             <JobCard
+              id={item.id}
               company={item.company}
               title={item.title}
               location={item.location}

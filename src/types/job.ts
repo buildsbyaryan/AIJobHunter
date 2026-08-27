@@ -5,4 +5,5 @@ export interface Job {
   location: string;
   salary: string;
   type: string;
+  description: string;
 }

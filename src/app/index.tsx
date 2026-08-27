@@ -11,26 +11,37 @@ import {
 } from "react-native";
 
 import JobCard from "../components/JobCard";
-import { jobs } from "@/data/jobs";
+
+import { jobs } from "../data/jobs";
 
 export default function HomeScreen() {
   const [searchText, setSearchText] = useState("");
 
+  /*
+   * SEARCH JOBS
+   */
 
-  // FILTER JOBS
   const filteredJobs = jobs.filter((job) => {
-    const search = searchText.toLowerCase();
+    const search = searchText.toLowerCase().trim();
 
     return (
       job.company.toLowerCase().includes(search) ||
       job.title.toLowerCase().includes(search) ||
-      job.location.toLowerCase().includes(search)
+      job.location.toLowerCase().includes(search) ||
+      job.type.toLowerCase().includes(search)
     );
   });
 
+  /*
+   * CHECK IF JOBS EXIST
+   */
+
+  const hasJobs = filteredJobs.length > 0;
+
   return (
     <View style={styles.container}>
-      {/* Header */}
+      {/* HEADER */}
+
       <View style={styles.header}>
         <Text style={styles.logo}>AIJobHunter</Text>
 
@@ -44,7 +55,8 @@ export default function HomeScreen() {
           interviews with AI.
         </Text>
 
-        {/* Search */}
+        {/* SEARCH */}
+
         <View style={styles.searchContainer}>
           <Text style={styles.searchIcon}>🔍</Text>
 
@@ -71,7 +83,7 @@ export default function HomeScreen() {
           )}
         </View>
 
-        {/* SEARCH RESULT */}
+        {/* RESULT */}
 
         {searchText.length > 0 && (
           <Text style={styles.searchResult}>
@@ -86,22 +98,36 @@ export default function HomeScreen() {
         <Text style={styles.sectionTitle}>Recommended Jobs</Text>
       </View>
 
-      {/* Jobs */}
-      <FlatList
-        data={jobs}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <JobCard
-            company={item.company}
-            title={item.title}
-            location={item.location}
-            salary={item.salary}
-          />
-        )}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.listContent}
-        ListEmptyComponent={<Text style={styles.noJobs}>No jobs found 😔</Text>}
-      />
+      {/* JOB LIST */}
+
+      {hasJobs ? (
+        <FlatList
+          data={filteredJobs}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => (
+            <JobCard
+              company={item.company}
+              title={item.title}
+              location={item.location}
+              salary={item.salary}
+              type={item.type}
+              description={item.description}
+            />
+          )}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.listContent}
+        />
+      ) : (
+        <View style={styles.emptyContainer}>
+          <Text style={styles.emptyEmoji}>😔</Text>
+
+          <Text style={styles.emptyTitle}>No jobs found</Text>
+
+          <Text style={styles.emptyText}>
+            Try searching for another job, company or location.
+          </Text>
+        </View>
+      )}
     </View>
   );
 }
@@ -186,18 +212,36 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 22,
     fontWeight: "700",
-    marginTop: 25,
     color: "#111111",
+    marginTop: 25,
   },
 
   listContent: {
     paddingHorizontal: 28,
     paddingBottom: 40,
   },
-  noJobs: {
+
+  emptyContainer: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 40,
+  },
+
+  emptyEmoji: {
+    fontSize: 40,
+  },
+
+  emptyTitle: {
+    fontSize: 20,
+    fontWeight: "700",
+    marginTop: 15,
+  },
+
+  emptyText: {
     textAlign: "center",
-    marginTop: 40,
-    fontSize: 16,
     color: "#666666",
+    marginTop: 8,
+    lineHeight: 22,
   },
 });

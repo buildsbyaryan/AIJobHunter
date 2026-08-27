@@ -7,7 +7,9 @@ export const jobs: Job[] = [
     title: "Software Engineer",
     location: "Bangalore",
     salary: "₹8–15 LPA",
-    type: "Full Time"
+    type: "Full Time",
+    description:
+      "Build scalable software products and work with modern technologies.",
   },
 
   {
@@ -16,7 +18,9 @@ export const jobs: Job[] = [
     title: "Frontend Developer",
     location: "Hyderabad",
     salary: "₹10–18 LPA",
-    type: "Full Time"
+    type: "Full Time",
+    description:
+      "Build modern frontend applications using React and TypeScript.",
   },
 
   {
@@ -25,7 +29,9 @@ export const jobs: Job[] = [
     title: "Backend Developer",
     location: "Gurgaon",
     salary: "₹12–20 LPA",
-    type: "Internship"
+    type: "Full Time",
+    description:
+      "Develop scalable backend services and APIs.",
   },
 
   {
@@ -34,7 +40,9 @@ export const jobs: Job[] = [
     title: "Java Developer",
     location: "Pune",
     salary: "₹5–9 LPA",
-    type: "Internship"
+    type: "Full Time",
+    description:
+      "Develop enterprise applications using Java and Spring Boot.",
   },
 
   {
@@ -43,7 +51,9 @@ export const jobs: Job[] = [
     title: "React Native Developer",
     location: "Noida",
     salary: "₹6–10 LPA",
-    type: "Internship"
+    type: "Full Time",
+    description:
+      "Build cross-platform mobile applications using React Native.",
   },
 
   {
@@ -52,8 +62,10 @@ export const jobs: Job[] = [
     title: "Mobile App Developer",
     location: "Bangalore",
     salary: "₹9–16 LPA",
-type: "Internship"  
-},
+    type: "Full Time",
+    description:
+      "Develop high-performance mobile applications.",
+  },
 
   {
     id: "7",
@@ -61,6 +73,8 @@ type: "Internship"
     title: "Java Backend Developer",
     location: "Chennai",
     salary: "₹6–11 LPA",
-    type: "Internship"
+    type: "Internship",
+    description:
+      "Work on backend services using Java and REST APIs.",
   },
 ];

@@ -1,4 +1,5 @@
 import { useState } from "react";
+
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
 interface JobCardProps {
@@ -6,6 +7,8 @@ interface JobCardProps {
   title: string;
   location: string;
   salary: string;
+  type: string;
+  description: string;
 }
 
 export default function JobCard({
@@ -13,6 +16,8 @@ export default function JobCard({
   title,
   location,
   salary,
+  type,
+  description,
 }: JobCardProps) {
   const [isSaved, setIsSaved] = useState(false);
 
@@ -21,25 +26,31 @@ export default function JobCard({
   return (
     <View style={styles.jobCard}>
       {/* Company */}
+
       <Text style={styles.company}>{company}</Text>
 
       {/* Job Title */}
+
       <Text style={styles.jobTitle}>{title}</Text>
 
       {/* Location */}
+
       <Text style={styles.location}>📍 {location}</Text>
 
       {/* Salary */}
-      <Text style={styles.salary}>{salary}</Text>
 
-      {/* Details */}
-      {showDetails && (
-        <Text style={styles.description}>
-          Build scalable applications and work with modern technologies.
-        </Text>
-      )}
+      <Text style={styles.salary}>💰 {salary}</Text>
+
+      {/* Job Type */}
+
+      <Text style={styles.type}>💼 {type}</Text>
+
+      {/* Description */}
+
+      {showDetails && <Text style={styles.description}>{description}</Text>}
 
       {/* Buttons */}
+
       <View style={styles.buttonContainer}>
         <Pressable
           style={styles.detailsButton}
@@ -67,7 +78,7 @@ export default function JobCard({
 
 const styles = StyleSheet.create({
   jobCard: {
-    marginTop: 20,
+    marginTop: 16,
     padding: 20,
     borderRadius: 18,
     backgroundColor: "#f5f5f5",
@@ -75,15 +86,15 @@ const styles = StyleSheet.create({
 
   company: {
     fontSize: 14,
-    color: "#666666",
     fontWeight: "600",
+    color: "#666666",
   },
 
   jobTitle: {
     fontSize: 21,
     fontWeight: "700",
-    marginTop: 6,
     color: "#111111",
+    marginTop: 6,
   },
 
   location: {
@@ -95,8 +106,14 @@ const styles = StyleSheet.create({
   salary: {
     fontSize: 15,
     fontWeight: "600",
-    marginTop: 8,
     color: "#111111",
+    marginTop: 8,
+  },
+
+  type: {
+    fontSize: 14,
+    color: "#666666",
+    marginTop: 8,
   },
 
   description: {

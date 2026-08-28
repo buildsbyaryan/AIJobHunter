@@ -1,8 +1,8 @@
-import { useState } from "react";
-
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { router } from "expo-router";
+
+import { useSavedJobs } from "../context/SavedJobsContext";
 
 interface JobCardProps {
   id: string;
@@ -23,7 +23,31 @@ export default function JobCard({
   type,
   description,
 }: JobCardProps) {
-  const [isSaved, setIsSaved] = useState(false);
+  const { addSavedJob, removeSavedJob, isJobSaved } = useSavedJobs();
+
+  const saved = isJobSaved(id);
+
+  const job = {
+    id,
+    company,
+    title,
+    location,
+    salary,
+    type,
+    description,
+  };
+
+  const handleSaveJob = () => {
+    console.log("SAVE BUTTON PRESSED");
+    console.log("Job ID:", id);
+    console.log("Currently saved:", saved);
+
+    if (saved) {
+      removeSavedJob(id);
+    } else {
+      addSavedJob(job);
+    }
+  };
 
   return (
     <View style={styles.jobCard}>
@@ -50,7 +74,7 @@ export default function JobCard({
             router.push({
               pathname: "/job/[id]",
               params: {
-                id: id,
+                id,
               },
             });
           }}
@@ -58,18 +82,16 @@ export default function JobCard({
           <Text style={styles.detailsButtonText}>View Details</Text>
         </Pressable>
 
-        {/* SAVE */}
+        {/* SAVE JOB */}
 
         <Pressable
-          style={[styles.saveButton, isSaved && styles.savedButton]}
-          onPress={() => {
-            setIsSaved(!isSaved);
-          }}
+          style={[styles.saveButton, saved && styles.savedButton]}
+          onPress={handleSaveJob}
         >
           <Text
-            style={[styles.saveButtonText, isSaved && styles.savedButtonText]}
+            style={[styles.saveButtonText, saved && styles.savedButtonText]}
           >
-            {isSaved ? "Saved ✓" : "Save Job"}
+            {saved ? "Saved ✓" : "Save Job"}
           </Text>
         </Pressable>
       </View>

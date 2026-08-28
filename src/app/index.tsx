@@ -12,6 +12,7 @@ import {
 
 import JobCard from "../components/JobCard";
 
+import { router } from "expo-router";
 import { jobs } from "../data/jobs";
 
 export default function HomeScreen() {
@@ -44,6 +45,15 @@ export default function HomeScreen() {
 
       <View style={styles.header}>
         <Text style={styles.logo}>AIJobHunter</Text>
+
+        <Pressable
+          style={styles.savedJobsButton}
+          onPress={() => {
+            router.push("/saved");
+          }}
+        >
+          <Text style={styles.savedJobsButtonText}>❤️ Saved Jobs</Text>
+        </Pressable>
 
         <Text style={styles.title}>
           Find your{"\n"}
@@ -148,6 +158,21 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: "700",
     color: "#111111",
+  },
+
+  savedJobsButton: {
+    alignSelf: "flex-start",
+    marginTop: 15,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 10,
+    backgroundColor: "#111111",
+  },
+
+  savedJobsButtonText: {
+    color: "#ffffff",
+    fontSize: 14,
+    fontWeight: "600",
   },
 
   title: {

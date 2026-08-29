@@ -36,13 +36,6 @@ export default function SavedScreen() {
           <Text style={styles.emptyText}>
             Save jobs you're interested in and they will appear here.
           </Text>
-
-          <Pressable
-            style={styles.exploreButton}
-            onPress={() => router.replace("/")}
-          >
-            <Text style={styles.exploreButtonText}>Explore Jobs</Text>
-          </Pressable>
         </View>
       ) : (
         <FlatList

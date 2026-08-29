@@ -46,14 +46,6 @@ export default function HomeScreen() {
       <View style={styles.header}>
         <Text style={styles.logo}>AIJobHunter</Text>
 
-        <Pressable
-          style={styles.savedJobsButton}
-          onPress={() => {
-            router.push("/saved");
-          }}
-        >
-          <Text style={styles.savedJobsButtonText}>❤️ Saved Jobs</Text>
-        </Pressable>
 
         <Text style={styles.title}>
           Find your{"\n"}

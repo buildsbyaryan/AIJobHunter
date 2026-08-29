@@ -10,10 +10,10 @@ import {
   View,
 } from "react-native";
 
-import JobCard from "../components/JobCard";
+import JobCard from "../../components/JobCard";
 
 import { router } from "expo-router";
-import { jobs } from "../data/jobs";
+import { jobs } from "../../data/jobs";
 
 export default function HomeScreen() {
   const [searchText, setSearchText] = useState("");

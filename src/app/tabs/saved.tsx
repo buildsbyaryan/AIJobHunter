@@ -2,9 +2,9 @@ import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
 
 import { router } from "expo-router";
 
-import { useSavedJobs } from "../context/SavedJobsContext";
+import { useSavedJobs } from "../../context/SavedJobsContext";
 
-import JobCard from "../components/JobCard";
+import JobCard from "../../components/JobCard";
 
 export default function SavedScreen() {
   const { savedJobs } = useSavedJobs();

@@ -4,8 +4,11 @@
 // Get a free hosted Postgres database in seconds: `npx create-db`
 
 generator client {
-  provider = "prisma-client"
-  output   = "../src/generated/prisma"
+  provider            = "prisma-client"
+  output              = "../src/generated/prisma"
+  moduleFormat        = "cjs"
+  generatedFileExtension = "ts"
+  importFileExtension = "ts"
 }
 
 datasource db {
@@ -17,11 +20,14 @@ model User {
   name         String
   email        String        @unique
   password     String
-  createdAt    DateTime      @default(now())
+  createdAt    DateTime      @default(now()) @map("created_at")
 
   applications Application[]
   savedJobs     SavedJob[]
+
+  @@map("users")
 }
+
 
 model Job {
   id           Int           @id @default(autoincrement())
@@ -31,32 +37,38 @@ model Job {
   type         String
   description  String?
   salary       String?
-  createdAt    DateTime      @default(now())
+  createdAt    DateTime      @default(now()) @map("created_at")
 
   applications Application[]
   savedJobs     SavedJob[]
+
+  @@map("jobs")
 }
+
 
 model Application {
   id        Int      @id @default(autoincrement())
-  userId    Int
-  jobId     Int
+  userId    Int      @map("user_id")
+  jobId     Int      @map("job_id")
   status    String   @default("applied")
-  appliedAt DateTime @default(now())
+  appliedAt DateTime @default(now()) @map("applied_at")
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   job  Job  @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  @@map("applications")
 }
+
 
 model SavedJob {
   id        Int      @id @default(autoincrement())
-  userId    Int
-  jobId     Int
-  createdAt DateTime @default(now())
+  userId    Int      @map("user_id")
+  jobId     Int      @map("job_id")
+  createdAt DateTime @default(now()) @map("created_at")
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   job  Job  @relation(fields: [jobId], references: [id], onDelete: Cascade)
 
   @@unique([userId, jobId])
+  @@map("saved_jobs")
 }
-

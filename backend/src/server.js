@@ -1,11 +1,14 @@
 const express = require("express");
 const prisma = require("./config/prisma");
+const authRoutes = require("./routes/authRoutes");
 
 const app = express();
 
 const PORT = 5000;
 
 app.use(express.json());
+app.use("/api/auth", authRoutes);
+
 
 // TEST API
 app.get("/api/test", (req, res) => {

@@ -2,3 +2,4 @@
 01.09.2026 No work on app today 
 02.09.2026 NO WORK
 03.09.2026 Working in PostgreSQL
+06.09.2026 Backend Testing 

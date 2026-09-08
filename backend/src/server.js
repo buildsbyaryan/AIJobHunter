@@ -2,6 +2,7 @@ const express = require("express");
 const prisma = require("./config/prisma");
 const authRoutes = require("./routes/authRoutes");
 const profileRoutes = require("./routes/profileRoutes");
+const jobRoutes = require("./routes/jobRoutes");
 
 const app = express();
 
@@ -10,6 +11,8 @@ const PORT = 5000;
 app.use(express.json());
 app.use("/api/auth", authRoutes);
 app.use("/api/profile", profileRoutes);
+app.use("/api/jobs", jobRoutes);
+
 
 
 // TEST API
@@ -59,53 +62,6 @@ app.post("/api/users", async (req, res) => {
 
     res.status(500).json({
       message: "Failed to create user",
-    });
-  }
-});
-
-// GET ALL JOBS
-app.get("/api/jobs", async (req, res) => {
-  try {
-    const jobs = await prisma.job.findMany();
-
-    res.json(jobs);
-  } catch (error) {
-    console.error(error);
-
-    res.status(500).json({
-      message: "Failed to fetch jobs",
-    });
-  }
-});
-
-// CREATE JOB
-app.post("/api/jobs", async (req, res) => {
-  try {
-    const { title, company, location, type, description, salary } = req.body;
-
-    if (!title || !company || !location || !type) {
-      return res.status(400).json({
-        message: "Title, company, location and type are required",
-      });
-    }
-
-    const job = await prisma.job.create({
-      data: {
-        title,
-        company,
-        location,
-        type,
-        description,
-        salary,
-      },
-    });
-
-    res.status(201).json(job);
-  } catch (error) {
-    console.error(error);
-
-    res.status(500).json({
-      message: "Failed to create job",
     });
   }
 });

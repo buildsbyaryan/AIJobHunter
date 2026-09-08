@@ -1,6 +1,6 @@
-import { useState } from "react";
-
+import { useEffect, useState } from "react";
 import {
+  ActivityIndicator,
   FlatList,
   Keyboard,
   Pressable,
@@ -11,16 +11,38 @@ import {
 } from "react-native";
 
 import JobCard from "../../components/JobCard";
-
-import { router } from "expo-router";
-import { jobs } from "../../data/jobs";
+import { getJobs } from "../../services/jobService";
+import { Job } from "../../types/job";
 
 export default function HomeScreen() {
+  const [jobs, setJobs] = useState<Job[]>([]);
   const [searchText, setSearchText] = useState("");
 
-  /*
-   * SEARCH JOBS
-   */
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  const loadJobs = async () => {
+    try {
+      setLoading(true);
+      setError("");
+
+      const data = await getJobs();
+
+      console.log("JOBS FROM SERVICE:", data);
+
+      setJobs(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error("GET JOBS ERROR:", error);
+
+      setJobs([]);
+      setError("Unable to load jobs. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+  useEffect(() => {
+    loadJobs();
+  }, []);
 
   const filteredJobs = jobs.filter((job) => {
     const search = searchText.toLowerCase().trim();
@@ -33,31 +55,19 @@ export default function HomeScreen() {
     );
   });
 
-  /*
-   * CHECK IF JOBS EXIST
-   */
-
   const hasJobs = filteredJobs.length > 0;
 
   return (
     <View style={styles.container}>
-      {/* HEADER */}
-
       <View style={styles.header}>
         <Text style={styles.logo}>AIJobHunter</Text>
 
-
-        <Text style={styles.title}>
-          Find your{"\n"}
-          dream job.
-        </Text>
+        <Text style={styles.title}>Find your{"\n"}dream job.</Text>
 
         <Text style={styles.subtitle}>
           Find the right jobs, manage your applications and prepare for
           interviews with AI.
         </Text>
-
-        {/* SEARCH */}
 
         <View style={styles.searchContainer}>
           <Text style={styles.searchIcon}>🔍</Text>
@@ -85,8 +95,6 @@ export default function HomeScreen() {
           )}
         </View>
 
-        {/* RESULT */}
-
         {searchText.length > 0 && (
           <Text style={styles.searchResult}>
             {filteredJobs.length === 0
@@ -100,28 +108,44 @@ export default function HomeScreen() {
         <Text style={styles.sectionTitle}>Recommended Jobs</Text>
       </View>
 
-      {/* JOB LIST */}
+      {loading ? (
+        <View style={styles.centerContainer}>
+          <ActivityIndicator size="large" />
 
-      {hasJobs ? (
+          <Text style={styles.loadingText}>Loading jobs...</Text>
+        </View>
+      ) : error ? (
+        <View style={styles.centerContainer}>
+          <Text style={styles.errorEmoji}>⚠️</Text>
+
+          <Text style={styles.errorTitle}>Something went wrong</Text>
+
+          <Text style={styles.errorText}>{error}</Text>
+
+          <Pressable style={styles.retryButton} onPress={loadJobs}>
+            <Text style={styles.retryText}>Try Again</Text>
+          </Pressable>
+        </View>
+      ) : hasJobs ? (
         <FlatList
           data={filteredJobs}
-          keyExtractor={(item) => item.id}
+          keyExtractor={(item) => String(item.id)}
           renderItem={({ item }) => (
             <JobCard
-              id={item.id}
+              id={String(item.id)}
               company={item.company}
               title={item.title}
               location={item.location}
-              salary={item.salary}
+              salary={item.salary ?? "Not specified"}
               type={item.type}
-              description={item.description}
+              description={item.description ?? ""}
             />
           )}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.listContent}
         />
       ) : (
-        <View style={styles.emptyContainer}>
+        <View style={styles.centerContainer}>
           <Text style={styles.emptyEmoji}>😔</Text>
 
           <Text style={styles.emptyTitle}>No jobs found</Text>
@@ -150,21 +174,6 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: "700",
     color: "#111111",
-  },
-
-  savedJobsButton: {
-    alignSelf: "flex-start",
-    marginTop: 15,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 10,
-    backgroundColor: "#111111",
-  },
-
-  savedJobsButtonText: {
-    color: "#ffffff",
-    fontSize: 14,
-    fontWeight: "600",
   },
 
   title: {
@@ -239,11 +248,46 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
 
-  emptyContainer: {
+  centerContainer: {
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
     paddingHorizontal: 40,
+  },
+
+  loadingText: {
+    marginTop: 12,
+    color: "#666666",
+  },
+
+  errorEmoji: {
+    fontSize: 40,
+  },
+
+  errorTitle: {
+    fontSize: 20,
+    fontWeight: "700",
+    marginTop: 15,
+  },
+
+  errorText: {
+    textAlign: "center",
+    color: "#666666",
+    marginTop: 8,
+    lineHeight: 22,
+  },
+
+  retryButton: {
+    marginTop: 20,
+    paddingHorizontal: 22,
+    paddingVertical: 12,
+    borderRadius: 10,
+    backgroundColor: "#111111",
+  },
+
+  retryText: {
+    color: "#ffffff",
+    fontWeight: "700",
   },
 
   emptyEmoji: {

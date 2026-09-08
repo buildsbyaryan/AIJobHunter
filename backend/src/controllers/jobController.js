@@ -4,9 +4,9 @@ const prisma = require("../config/prisma");
 // GET ALL JOBS
 // =========================
 
-const getAllJobs = (req, res) => {
+const getAllJobs = async (req, res) => {
   try {
-    const jobs = prisma.job.findMany({
+    const jobs = await prisma.job.findMany({
       orderBy: {
         createdAt: "desc",
       },
@@ -63,21 +63,13 @@ const getJobById = async (req, res) => {
   }
 };
 
-
 // =========================
 // CREATE JOB
 // =========================
 
 const createJob = async (req, res) => {
   try {
-    const {
-      title,
-      company,
-      location,
-      type,
-      description,
-      salary,
-    } = req.body;
+    const { title, company, location, type, description, salary } = req.body;
 
     if (!title || !company || !location || !type) {
       return res.status(400).json({
@@ -109,7 +101,6 @@ const createJob = async (req, res) => {
   }
 };
 
-
 // =========================
 // UPDATE JOB
 // =========================
@@ -124,14 +115,7 @@ const updateJob = async (req, res) => {
       });
     }
 
-    const {
-      title,
-      company,
-      location,
-      type,
-      description,
-      salary,
-    } = req.body;
+    const { title, company, location, type, description, salary } = req.body;
 
     const existingJob = await prisma.job.findUnique({
       where: {
@@ -171,7 +155,6 @@ const updateJob = async (req, res) => {
     });
   }
 };
-
 
 // =========================
 // DELETE JOB
@@ -216,7 +199,6 @@ const deleteJob = async (req, res) => {
     });
   }
 };
-
 
 module.exports = {
   getAllJobs,

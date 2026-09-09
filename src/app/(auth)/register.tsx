@@ -1,67 +1,72 @@
+import { router } from "expo-router";
 import { useState } from "react";
-
 import {
-    KeyboardAvoidingView,
-    Platform,
-    Pressable,
-    ScrollView,
-    StyleSheet,
-    Text,
-    View,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  StyleSheet,
+  Text,
+  View,
 } from "react-native";
 
-import { router } from "expo-router";
-
 import Button from "../../components/Button";
-import ErrorMessage from "../../components/ErrorMessage";
 import Input from "../../components/Input";
+import { registerUser } from "../../services/authService";
 
 export default function RegisterScreen() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
 
-  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const [showPassword, setShowPassword] = useState(false);
-
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-
-  const handleRegister = () => {
-    setError("");
-
+  const handleRegister = async () => {
     if (!name.trim()) {
-      setError("Full name is required.");
+      Alert.alert("Error", "Please enter your name");
       return;
     }
 
     if (!email.trim()) {
-      setError("Email is required.");
+      Alert.alert("Error", "Please enter your email");
       return;
     }
 
-    if (!email.includes("@")) {
-      setError("Please enter a valid email.");
-      return;
-    }
-
-    if (!password.trim()) {
-      setError("Password is required.");
+    if (!password) {
+      Alert.alert("Error", "Please enter your password");
       return;
     }
 
     if (password.length < 6) {
-      setError("Password must be at least 6 characters.");
+      Alert.alert("Error", "Password must be at least 6 characters");
       return;
     }
 
-    if (password !== confirmPassword) {
-      setError("Passwords do not match.");
-      return;
-    }
+    try {
+      setLoading(true);
 
-    router.replace("/(tabs)");
+      const response = await registerUser({
+        name: name.trim(),
+        email: email.trim().toLowerCase(),
+        password,
+      });
+
+      Alert.alert("Success", response.message || "Registration successful", [
+        {
+          text: "Login",
+          onPress: () => router.replace("/(auth)/login"),
+        },
+      ]);
+    } catch (error: any) {
+      console.error("REGISTER ERROR:", error?.response?.data || error);
+
+      const message =
+        error?.response?.data?.message ||
+        "Registration failed. Please try again.";
+
+      Alert.alert("Registration Failed", message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -69,97 +74,34 @@ export default function RegisterScreen() {
       style={styles.container}
       behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
-      >
-        <Text style={styles.logo}>AIJobHunter</Text>
+      <View style={styles.content}>
+        <Text style={styles.title}>Create Account</Text>
 
-        <Text style={styles.title}>Create{"\n"}account.</Text>
+        <Text style={styles.subtitle}>Create your AIJobHunter account</Text>
 
-        <Text style={styles.subtitle}>
-          Create your profile and start finding better jobs.
-        </Text>
+        <Input placeholder="Full Name" value={name} onChangeText={setName} />
 
-        <View style={styles.form}>
-          <Input
-            label="Full Name"
-            placeholder="Enter your full name"
-            value={name}
-            onChangeText={(text) => {
-              setName(text);
-              setError("");
-            }}
-            autoCapitalize="words"
-          />
+        <Input
+          placeholder="Email"
+          value={email}
+          onChangeText={setEmail}
+          keyboardType="email-address"
+          autoCapitalize="none"
+        />
 
-          <Input
-            label="Email"
-            placeholder="Enter your email"
-            value={email}
-            onChangeText={(text) => {
-              setEmail(text);
-              setError("");
-            }}
-            keyboardType="email-address"
-            autoCapitalize="none"
-            autoCorrect={false}
-          />
+        <Input
+          placeholder="Password"
+          value={password}
+          onChangeText={setPassword}
+          secureTextEntry
+        />
 
-          <Input
-            label="Password"
-            placeholder="Create a password"
-            value={password}
-            onChangeText={(text) => {
-              setPassword(text);
-              setError("");
-            }}
-            secureTextEntry={!showPassword}
-            autoCapitalize="none"
-          />
-
-          <Pressable onPress={() => setShowPassword(!showPassword)}>
-            <Text style={styles.showPassword}>
-              {showPassword ? "Hide Password" : "Show Password"}
-            </Text>
-          </Pressable>
-
-          <Input
-            label="Confirm Password"
-            placeholder="Confirm your password"
-            value={confirmPassword}
-            onChangeText={(text) => {
-              setConfirmPassword(text);
-              setError("");
-            }}
-            secureTextEntry={!showConfirmPassword}
-            autoCapitalize="none"
-          />
-
-          <Pressable
-            onPress={() => setShowConfirmPassword(!showConfirmPassword)}
-          >
-            <Text style={styles.showPassword}>
-              {showConfirmPassword ? "Hide Password" : "Show Password"}
-            </Text>
-          </Pressable>
-
-          {error ? <ErrorMessage message={error} /> : null}
-
-          <View style={styles.button}>
-            <Button title="Create Account" onPress={handleRegister} />
-          </View>
-
-          <View style={styles.loginRow}>
-            <Text style={styles.loginText}>Already have an account?</Text>
-
-            <Pressable onPress={() => router.push("/login")}>
-              <Text style={styles.loginLink}>Login</Text>
-            </Pressable>
-          </View>
-        </View>
-      </ScrollView>
+        <Button
+          title={loading ? "Creating..." : "Register"}
+          onPress={handleRegister}
+          disabled={loading}
+        />
+      </View>
     </KeyboardAvoidingView>
   );
 }
@@ -170,65 +112,22 @@ const styles = StyleSheet.create({
     backgroundColor: "#ffffff",
   },
 
-  scrollContent: {
-    flexGrow: 1,
+  content: {
+    flex: 1,
+    justifyContent: "center",
     paddingHorizontal: 28,
-    paddingTop: 60,
-    paddingBottom: 40,
-  },
-
-  logo: {
-    fontSize: 22,
-    fontWeight: "800",
-    color: "#111111",
   },
 
   title: {
-    marginTop: 35,
-    fontSize: 42,
-    lineHeight: 48,
+    fontSize: 32,
     fontWeight: "800",
     color: "#111111",
   },
 
   subtitle: {
-    marginTop: 15,
     fontSize: 15,
-    lineHeight: 23,
     color: "#666666",
-  },
-
-  form: {
-    marginTop: 10,
-  },
-
-  showPassword: {
-    marginTop: 10,
-    textAlign: "right",
-    fontSize: 13,
-    fontWeight: "600",
-    color: "#111111",
-  },
-
-  button: {
-    marginTop: 25,
-  },
-
-  loginRow: {
-    flexDirection: "row",
-    justifyContent: "center",
-    marginTop: 25,
-  },
-
-  loginText: {
-    color: "#666666",
-    fontSize: 14,
-  },
-
-  loginLink: {
-    marginLeft: 5,
-    color: "#111111",
-    fontSize: 14,
-    fontWeight: "800",
+    marginTop: 8,
+    marginBottom: 30,
   },
 });

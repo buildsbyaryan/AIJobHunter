@@ -1,53 +1,61 @@
+import { router } from "expo-router";
 import { useState } from "react";
-
 import {
-    KeyboardAvoidingView,
-    Platform,
-    Pressable,
-    ScrollView,
-    StyleSheet,
-    Text,
-    View,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  StyleSheet,
+  Text,
+  View,
 } from "react-native";
 
-import { router } from "expo-router";
-
 import Button from "../../components/Button";
-import ErrorMessage from "../../components/ErrorMessage";
 import Input from "../../components/Input";
+
+import { loginUser } from "../../services/authService";
+import { saveToken } from "../../services/authStorage";
 
 export default function LoginScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const [showPassword, setShowPassword] = useState(false);
-
-  const handleLogin = () => {
-    setError("");
-
+  const handleLogin = async () => {
     if (!email.trim()) {
-      setError("Email is required.");
+      Alert.alert("Error", "Please enter your email");
       return;
     }
 
-    if (!email.includes("@")) {
-      setError("Please enter a valid email.");
+    if (!password) {
+      Alert.alert("Error", "Please enter your password");
       return;
     }
 
-    if (!password.trim()) {
-      setError("Password is required.");
-      return;
-    }
+    try {
+      setLoading(true);
 
-    if (password.length < 6) {
-      setError("Password must be at least 6 characters.");
-      return;
-    }
+      const response = await loginUser({
+        email: email.trim().toLowerCase(),
+        password,
+      });
 
-    router.replace("/(tabs)");
+      await saveToken(response.token);
+
+      console.log("JWT SAVED");
+
+      router.replace("/(tabs)");
+    } catch (error: any) {
+      console.error("LOGIN ERROR:", error?.response?.data || error);
+
+      const message =
+        error?.response?.data?.message ||
+        "Login failed. Please check your credentials.";
+
+      Alert.alert("Login Failed", message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -55,66 +63,39 @@ export default function LoginScreen() {
       style={styles.container}
       behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
-      >
-        <Text style={styles.logo}>AIJobHunter</Text>
+      <View style={styles.content}>
+        <Text style={styles.title}>Welcome Back</Text>
 
-        <Text style={styles.title}>Welcome{"\n"}back.</Text>
+        <Text style={styles.subtitle}>Login to continue to AIJobHunter</Text>
 
-        <Text style={styles.subtitle}>
-          Login to continue finding your dream job.
+        <Input
+          placeholder="Email"
+          value={email}
+          onChangeText={setEmail}
+          keyboardType="email-address"
+          autoCapitalize="none"
+        />
+
+        <Input
+          placeholder="Password"
+          value={password}
+          onChangeText={setPassword}
+          secureTextEntry
+        />
+
+        <Button
+          title={loading ? "Logging in..." : "Login"}
+          onPress={handleLogin}
+          disabled={loading}
+        />
+
+        <Text
+          style={styles.registerText}
+          onPress={() => router.push("/(auth)/register")}
+        >
+          Don't have an account? Register
         </Text>
-
-        <View style={styles.form}>
-          <Input
-            label="Email"
-            placeholder="Enter your email"
-            value={email}
-            onChangeText={(text) => {
-              setEmail(text);
-              setError("");
-            }}
-            keyboardType="email-address"
-            autoCapitalize="none"
-            autoCorrect={false}
-          />
-
-          <Input
-            label="Password"
-            placeholder="Enter your password"
-            value={password}
-            onChangeText={(text) => {
-              setPassword(text);
-              setError("");
-            }}
-            secureTextEntry={!showPassword}
-            autoCapitalize="none"
-          />
-
-          <Pressable onPress={() => setShowPassword(!showPassword)}>
-            <Text style={styles.showPassword}>
-              {showPassword ? "Hide Password" : "Show Password"}
-            </Text>
-          </Pressable>
-
-          {error ? <ErrorMessage message={error} /> : null}
-
-          <View style={styles.button}>
-            <Button title="Login" onPress={handleLogin} />
-          </View>
-
-          <View style={styles.registerRow}>
-            <Text style={styles.registerText}>Don't have an account?</Text>
-
-            <Pressable onPress={() => router.push("/register")}>
-              <Text style={styles.registerLink}>Register</Text>
-            </Pressable>
-          </View>
-        </View>
-      </ScrollView>
+      </View>
     </KeyboardAvoidingView>
   );
 }
@@ -125,65 +106,29 @@ const styles = StyleSheet.create({
     backgroundColor: "#ffffff",
   },
 
-  scrollContent: {
-    flexGrow: 1,
+  content: {
+    flex: 1,
+    justifyContent: "center",
     paddingHorizontal: 28,
-    paddingTop: 70,
-    paddingBottom: 40,
-  },
-
-  logo: {
-    fontSize: 22,
-    fontWeight: "800",
-    color: "#111111",
   },
 
   title: {
-    marginTop: 45,
-    fontSize: 42,
-    lineHeight: 48,
+    fontSize: 32,
     fontWeight: "800",
     color: "#111111",
   },
 
   subtitle: {
-    marginTop: 15,
     fontSize: 15,
-    lineHeight: 23,
     color: "#666666",
-  },
-
-  form: {
-    marginTop: 20,
-  },
-
-  showPassword: {
-    marginTop: 10,
-    textAlign: "right",
-    fontSize: 13,
-    fontWeight: "600",
-    color: "#111111",
-  },
-
-  button: {
-    marginTop: 25,
-  },
-
-  registerRow: {
-    flexDirection: "row",
-    justifyContent: "center",
-    marginTop: 25,
+    marginTop: 8,
+    marginBottom: 30,
   },
 
   registerText: {
-    color: "#666666",
-    fontSize: 14,
-  },
-
-  registerLink: {
-    marginLeft: 5,
-    color: "#111111",
-    fontSize: 14,
-    fontWeight: "800",
+    textAlign: "center",
+    marginTop: 20,
+    fontSize: 15,
+    color: "#333333",
   },
 });

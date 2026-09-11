@@ -1,15 +1,13 @@
+import { AuthProvider } from "@/context/AuthContext";
+import { SavedJobsProvider } from "@/context/SavedJobsContext";
 import { Stack } from "expo-router";
-
-import { SavedJobsProvider } from "../context/SavedJobsContext";
 
 export default function RootLayout() {
   return (
-    <SavedJobsProvider>
-      <Stack
-        screenOptions={{
-          headerShown: false,
-        }}
-      />
-    </SavedJobsProvider>
+    <AuthProvider>
+      <SavedJobsProvider>
+        <Stack screenOptions={{ headerShown: false }} />
+      </SavedJobsProvider>
+    </AuthProvider>
   );
 }

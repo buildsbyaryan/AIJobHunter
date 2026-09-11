@@ -1,11 +1,28 @@
 import axios from "axios";
+import { getToken } from "./authStorage";
 
 const api = axios.create({
-  baseURL: "http://192.168.1.6:5000/api",
+  baseURL: "http://192.168.1.4:5000/api",
   timeout: 10000,
   headers: {
     "Content-Type": "application/json",
   },
 });
+
+api.interceptors.request.use(
+  async (config) => {
+    const token = await getToken();
+
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
 
 export default api;

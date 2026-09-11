@@ -1,5 +1,6 @@
 import { router } from "expo-router";
 import { useState } from "react";
+import { useAuth } from "../../context/AuthContext";
 import {
   Alert,
   KeyboardAvoidingView,
@@ -18,7 +19,7 @@ import { saveToken } from "../../services/authStorage";
 export default function LoginScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-
+const { login } = useAuth();
   const [loading, setLoading] = useState(false);
 
   const handleLogin = async () => {
@@ -40,7 +41,7 @@ export default function LoginScreen() {
         password,
       });
 
-      await saveToken(response.token);
+     await login(response.token, response.user);
 
       console.log("JWT SAVED");
 
@@ -132,3 +133,5 @@ const styles = StyleSheet.create({
     color: "#333333",
   },
 });
+
+

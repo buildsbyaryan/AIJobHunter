@@ -1,27 +1,42 @@
-import { Tabs } from "expo-router";
-
 import { Ionicons } from "@expo/vector-icons";
+import { Redirect, Tabs } from "expo-router";
+
+import { useAuth } from "../../context/AuthContext";
 
 export default function TabsLayout() {
+  const { isAuthenticated, loading } = useAuth();
+
+  if (loading) {
+    return null;
+  }
+
+  if (!isAuthenticated) {
+    return <Redirect href="/(auth)/login" />;
+  }
+
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
 
+        tabBarActiveTintColor: "#111111",
+        tabBarInactiveTintColor: "#999999",
+
         tabBarStyle: {
-          height: 70,
+          height: 72,
           paddingTop: 8,
-          paddingBottom: 8,
+          paddingBottom: 10,
+          borderTopWidth: 1,
+          borderTopColor: "#eeeeee",
+          backgroundColor: "#ffffff",
+          elevation: 0,
+          shadowOpacity: 0,
         },
 
         tabBarLabelStyle: {
           fontSize: 12,
           fontWeight: "600",
         },
-
-        tabBarActiveTintColor: "#111111",
-
-        tabBarInactiveTintColor: "#999999",
       }}
     >
       <Tabs.Screen
@@ -29,10 +44,10 @@ export default function TabsLayout() {
         options={{
           title: "Home",
 
-          tabBarIcon: ({ focused, color, size }) => (
+          tabBarIcon: ({ color, focused }) => (
             <Ionicons
               name={focused ? "home" : "home-outline"}
-              size={size}
+              size={24}
               color={color}
             />
           ),
@@ -44,10 +59,10 @@ export default function TabsLayout() {
         options={{
           title: "Saved",
 
-          tabBarIcon: ({ focused, color, size }) => (
+          tabBarIcon: ({ color, focused }) => (
             <Ionicons
-              name={focused ? "heart" : "heart-outline"}
-              size={size}
+              name={focused ? "bookmark" : "bookmark-outline"}
+              size={24}
               color={color}
             />
           ),
@@ -59,10 +74,10 @@ export default function TabsLayout() {
         options={{
           title: "Profile",
 
-          tabBarIcon: ({ focused, color, size }) => (
+          tabBarIcon: ({ color, focused }) => (
             <Ionicons
               name={focused ? "person" : "person-outline"}
-              size={size}
+              size={24}
               color={color}
             />
           ),

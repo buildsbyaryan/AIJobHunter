@@ -1,8 +1,6 @@
-import { Pressable, StyleSheet, Text, View } from "react-native";
-
+import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
-
-import { useSavedJobs } from "../context/SavedJobsContext";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 
 interface JobCardProps {
   id: string;
@@ -11,7 +9,7 @@ interface JobCardProps {
   location: string;
   salary: string;
   type: string;
-  description: string;
+  description?: string;
 }
 
 export default function JobCard({
@@ -23,170 +21,147 @@ export default function JobCard({
   type,
   description,
 }: JobCardProps) {
-  const { addSavedJob, removeSavedJob, isJobSaved } = useSavedJobs();
-
-  const saved = isJobSaved(id);
-
-  const job = {
-    id,
-    company,
-    title,
-    location,
-    salary,
-    type,
-    description,
-  };
-
-  const handleSaveJob = () => {
-    console.log("SAVE BUTTON PRESSED");
-    console.log("Job ID:", id);
-    console.log("Currently saved:", saved);
-
-    if (saved) {
-      removeSavedJob(id);
-    } else {
-      addSavedJob(job);
-    }
-  };
-
   return (
-    <View style={styles.jobCard}>
-      <Text style={styles.company}>{company}</Text>
-
-      <Text style={styles.jobTitle}>{title}</Text>
-
-      <Text style={styles.location}>📍 {location}</Text>
-
-      <Text style={styles.salary}>💰 {salary}</Text>
-
-      <Text style={styles.type}>💼 {type}</Text>
-
-      <Text style={styles.description} numberOfLines={2}>
-        {description}
-      </Text>
-
-      <View style={styles.buttonContainer}>
-        {/* VIEW DETAILS */}
-
-        <Pressable
-          style={styles.detailsButton}
-          onPress={() => {
-            router.push({
-              pathname: "/job/[id]",
-              params: {
-                id,
-              },
-            });
-          }}
-        >
-          <Text style={styles.detailsButtonText}>View Details</Text>
-        </Pressable>
-
-        {/* SAVE JOB */}
-
-        <Pressable
-          style={[styles.saveButton, saved && styles.savedButton]}
-          onPress={handleSaveJob}
-        >
-          <Text
-            style={[styles.saveButtonText, saved && styles.savedButtonText]}
-          >
-            {saved ? "Saved ✓" : "Save Job"}
+    <Pressable
+      style={({ pressed }) => [styles.card, pressed && styles.pressed]}
+      onPress={() => router.push(`/job/${id}`)}
+    >
+      <View style={styles.topRow}>
+        <View style={styles.companyIcon}>
+          <Text style={styles.companyLetter}>
+            {company.charAt(0).toUpperCase()}
           </Text>
-        </Pressable>
+        </View>
+
+        <View style={styles.titleContainer}>
+          <Text style={styles.company} numberOfLines={1}>
+            {company}
+          </Text>
+
+          <Text style={styles.title} numberOfLines={2}>
+            {title}
+          </Text>
+        </View>
+
+        <Ionicons name="bookmark-outline" size={21} color="#999999" />
       </View>
-    </View>
+
+      <View style={styles.detailsRow}>
+        <View style={styles.detail}>
+          <Ionicons name="location-outline" size={16} color="#777777" />
+          <Text style={styles.detailText} numberOfLines={1}>
+            {location}
+          </Text>
+        </View>
+
+        <View style={styles.detail}>
+          <Ionicons name="briefcase-outline" size={16} color="#777777" />
+          <Text style={styles.detailText}>{type}</Text>
+        </View>
+      </View>
+
+      <View style={styles.bottomRow}>
+        <Text style={styles.salary}>{salary || "Salary not specified"}</Text>
+
+        <Text style={styles.viewText}>View Details →</Text>
+      </View>
+    </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
-  jobCard: {
-    marginTop: 16,
-    padding: 20,
+  card: {
+    backgroundColor: "#ffffff",
     borderRadius: 18,
-    backgroundColor: "#f5f5f5",
+    padding: 18,
+    marginBottom: 15,
+    borderWidth: 1,
+    borderColor: "#eeeeee",
+  },
+
+  pressed: {
+    opacity: 0.7,
+  },
+
+  topRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+  },
+
+  companyIcon: {
+    width: 46,
+    height: 46,
+    borderRadius: 13,
+    backgroundColor: "#111111",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  companyLetter: {
+    color: "#ffffff",
+    fontSize: 20,
+    fontWeight: "800",
+  },
+
+  titleContainer: {
+    flex: 1,
+    marginLeft: 12,
+    marginRight: 10,
   },
 
   company: {
-    fontSize: 14,
+    fontSize: 13,
+    color: "#777777",
     fontWeight: "600",
-    color: "#666666",
   },
 
-  jobTitle: {
-    fontSize: 21,
-    fontWeight: "700",
+  title: {
+    fontSize: 17,
     color: "#111111",
-    marginTop: 6,
+    fontWeight: "800",
+    marginTop: 5,
   },
 
-  location: {
-    fontSize: 15,
-    color: "#666666",
-    marginTop: 12,
-  },
-
-  salary: {
-    fontSize: 15,
-    fontWeight: "600",
-    color: "#111111",
-    marginTop: 8,
-  },
-
-  type: {
-    fontSize: 14,
-    color: "#666666",
-    marginTop: 8,
-  },
-
-  description: {
-    fontSize: 14,
-    lineHeight: 21,
-    color: "#666666",
-    marginTop: 12,
-  },
-
-  buttonContainer: {
+  detailsRow: {
     flexDirection: "row",
-    gap: 10,
+    alignItems: "center",
+    gap: 18,
     marginTop: 18,
   },
 
-  detailsButton: {
-    flex: 1,
-    paddingVertical: 12,
-    borderRadius: 10,
+  detail: {
+    flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#111111",
+    gap: 5,
+    flexShrink: 1,
   },
 
-  detailsButtonText: {
-    color: "#ffffff",
-    fontSize: 14,
-    fontWeight: "600",
+  detailText: {
+    fontSize: 13,
+    color: "#777777",
+    flexShrink: 1,
   },
 
-  saveButton: {
-    flex: 1,
-    paddingVertical: 12,
-    borderRadius: 10,
+  bottomRow: {
+    flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#ffffff",
-    borderWidth: 1,
-    borderColor: "#111111",
+    justifyContent: "space-between",
+    marginTop: 18,
+    paddingTop: 14,
+    borderTopWidth: 1,
+    borderTopColor: "#eeeeee",
   },
 
-  saveButtonText: {
+  salary: {
+    fontSize: 13,
+    fontWeight: "700",
     color: "#111111",
-    fontSize: 14,
-    fontWeight: "600",
+    flex: 1,
   },
 
-  savedButton: {
-    backgroundColor: "#111111",
-  },
-
-  savedButtonText: {
-    color: "#ffffff",
+  viewText: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#111111",
   },
 });

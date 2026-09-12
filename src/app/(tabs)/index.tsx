@@ -4,6 +4,7 @@ import {
   FlatList,
   Keyboard,
   Pressable,
+  RefreshControl,
   StyleSheet,
   Text,
   TextInput,
@@ -19,27 +20,42 @@ export default function HomeScreen() {
   const [searchText, setSearchText] = useState("");
 
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState("");
 
   const loadJobs = async () => {
     try {
-      setLoading(true);
       setError("");
 
       const data = await getJobs();
 
-      console.log("JOBS FROM SERVICE:", data);
-
-      setJobs(Array.isArray(data) ? data : []);
+      setJobs(data);
     } catch (error) {
       console.error("GET JOBS ERROR:", error);
 
-      setJobs([]);
-      setError("Unable to load jobs. Please try again.");
+      setError("Unable to load jobs.");
     } finally {
       setLoading(false);
     }
   };
+
+  const refreshJobs = async () => {
+    try {
+      setRefreshing(true);
+      setError("");
+
+      const data = await getJobs();
+
+      setJobs(data);
+    } catch (error) {
+      console.error("REFRESH JOBS ERROR:", error);
+
+      setError("Unable to refresh jobs.");
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
   useEffect(() => {
     loadJobs();
   }, []);
@@ -55,69 +71,57 @@ export default function HomeScreen() {
     );
   });
 
-  const hasJobs = filteredJobs.length > 0;
-
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.logo}>AIJobHunter</Text>
+        <View>
+          <Text style={styles.greeting}>Welcome back 👋</Text>
 
-        <Text style={styles.title}>Find your{"\n"}dream job.</Text>
-
-        <Text style={styles.subtitle}>
-          Find the right jobs, manage your applications and prepare for
-          interviews with AI.
-        </Text>
-
-        <View style={styles.searchContainer}>
-          <Text style={styles.searchIcon}>🔍</Text>
-
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Search jobs..."
-            placeholderTextColor="#999999"
-            value={searchText}
-            onChangeText={setSearchText}
-            returnKeyType="search"
-            onSubmitEditing={() => Keyboard.dismiss()}
-          />
-
-          {searchText.length > 0 && (
-            <Pressable
-              style={styles.clearButton}
-              onPress={() => {
-                setSearchText("");
-                Keyboard.dismiss();
-              }}
-            >
-              <Text style={styles.clearButtonText}>✕</Text>
-            </Pressable>
-          )}
+          <Text style={styles.title}>Find your dream job.</Text>
         </View>
 
-        {searchText.length > 0 && (
-          <Text style={styles.searchResult}>
-            {filteredJobs.length === 0
-              ? "No jobs found"
-              : `${filteredJobs.length} ${
-                  filteredJobs.length === 1 ? "job" : "jobs"
-                } found`}
-          </Text>
-        )}
+        <View style={styles.headerIcon}>
+          <Text style={styles.headerIconText}>A</Text>
+        </View>
+      </View>
 
+      <View style={styles.searchContainer}>
+        <Text style={styles.searchIcon}>⌕</Text>
+
+        <TextInput
+          style={styles.searchInput}
+          placeholder="Search jobs, companies..."
+          placeholderTextColor="#999999"
+          value={searchText}
+          onChangeText={setSearchText}
+          returnKeyType="search"
+          onSubmitEditing={() => Keyboard.dismiss()}
+        />
+
+        {searchText.length > 0 && (
+          <Pressable
+            style={styles.clearButton}
+            onPress={() => setSearchText("")}
+          >
+            <Text style={styles.clearText}>×</Text>
+          </Pressable>
+        )}
+      </View>
+
+      <View style={styles.sectionHeader}>
         <Text style={styles.sectionTitle}>Recommended Jobs</Text>
+
+        <Text style={styles.jobCount}>{filteredJobs.length} Jobs</Text>
       </View>
 
       {loading ? (
-        <View style={styles.centerContainer}>
+        <View style={styles.center}>
           <ActivityIndicator size="large" />
 
           <Text style={styles.loadingText}>Loading jobs...</Text>
         </View>
       ) : error ? (
-        <View style={styles.centerContainer}>
-          <Text style={styles.errorEmoji}>⚠️</Text>
-
+        <View style={styles.center}>
           <Text style={styles.errorTitle}>Something went wrong</Text>
 
           <Text style={styles.errorText}>{error}</Text>
@@ -126,7 +130,15 @@ export default function HomeScreen() {
             <Text style={styles.retryText}>Try Again</Text>
           </Pressable>
         </View>
-      ) : hasJobs ? (
+      ) : filteredJobs.length === 0 ? (
+        <View style={styles.center}>
+          <Text style={styles.emptyEmoji}>🔍</Text>
+
+          <Text style={styles.emptyTitle}>No jobs found</Text>
+
+          <Text style={styles.emptyText}>Try another keyword or location.</Text>
+        </View>
+      ) : (
         <FlatList
           data={filteredJobs}
           keyExtractor={(item) => String(item.id)}
@@ -136,24 +148,17 @@ export default function HomeScreen() {
               company={item.company}
               title={item.title}
               location={item.location}
-              salary={item.salary ?? "Not specified"}
+              salary={item.salary ?? "Salary not specified"}
               type={item.type}
               description={item.description ?? ""}
             />
           )}
           showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={refreshJobs} />
+          }
           contentContainerStyle={styles.listContent}
         />
-      ) : (
-        <View style={styles.centerContainer}>
-          <Text style={styles.emptyEmoji}>😔</Text>
-
-          <Text style={styles.emptyTitle}>No jobs found</Text>
-
-          <Text style={styles.emptyText}>
-            Try searching for another job, company or location.
-          </Text>
-        </View>
       )}
     </View>
   );
@@ -162,127 +167,141 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#ffffff",
+    backgroundColor: "#f7f7f7",
+    paddingTop: 55,
   },
 
   header: {
-    paddingHorizontal: 28,
-    paddingTop: 60,
+    paddingHorizontal: 22,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
 
-  logo: {
-    fontSize: 22,
-    fontWeight: "700",
-    color: "#111111",
+  greeting: {
+    fontSize: 14,
+    color: "#777777",
+    fontWeight: "500",
   },
 
   title: {
-    fontSize: 42,
+    fontSize: 28,
     fontWeight: "800",
-    lineHeight: 50,
     color: "#111111",
-    marginTop: 45,
+    marginTop: 8,
   },
 
-  subtitle: {
-    fontSize: 16,
-    lineHeight: 25,
-    color: "#666666",
-    marginTop: 18,
+  headerIcon: {
+    width: 46,
+    height: 46,
+    borderRadius: 23,
+    backgroundColor: "#111111",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  headerIconText: {
+    color: "#ffffff",
+    fontSize: 18,
+    fontWeight: "800",
   },
 
   searchContainer: {
     height: 54,
+    marginHorizontal: 22,
+    marginTop: 24,
+    borderRadius: 15,
+    backgroundColor: "#ffffff",
+    borderWidth: 1,
+    borderColor: "#eeeeee",
     flexDirection: "row",
     alignItems: "center",
-    borderWidth: 1,
-    borderColor: "#dddddd",
-    borderRadius: 14,
-    paddingHorizontal: 14,
-    marginTop: 30,
-    backgroundColor: "#fafafa",
+    paddingHorizontal: 15,
   },
 
   searchIcon: {
-    fontSize: 18,
+    fontSize: 27,
+    color: "#777777",
     marginRight: 8,
   },
 
   searchInput: {
     flex: 1,
-    height: "100%",
-    fontSize: 16,
+    fontSize: 15,
     color: "#111111",
   },
 
   clearButton: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: "#eeeeee",
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#eeeeee",
   },
 
-  clearButtonText: {
-    fontSize: 14,
-    fontWeight: "700",
+  clearText: {
+    fontSize: 22,
     color: "#555555",
+    lineHeight: 25,
   },
 
-  searchResult: {
-    marginTop: 10,
-    fontSize: 14,
-    color: "#666666",
+  sectionHeader: {
+    marginHorizontal: 22,
+    marginTop: 28,
+    marginBottom: 15,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
   },
 
   sectionTitle: {
-    fontSize: 22,
-    fontWeight: "700",
+    fontSize: 20,
+    fontWeight: "800",
     color: "#111111",
-    marginTop: 25,
+  },
+
+  jobCount: {
+    fontSize: 13,
+    color: "#777777",
   },
 
   listContent: {
-    paddingHorizontal: 28,
-    paddingBottom: 40,
+    paddingHorizontal: 22,
+    paddingBottom: 35,
   },
 
-  centerContainer: {
+  center: {
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    paddingHorizontal: 40,
+    paddingHorizontal: 30,
   },
 
   loadingText: {
+    color: "#777777",
     marginTop: 12,
-    color: "#666666",
-  },
-
-  errorEmoji: {
-    fontSize: 40,
   },
 
   errorTitle: {
     fontSize: 20,
-    fontWeight: "700",
-    marginTop: 15,
+    fontWeight: "800",
+    color: "#111111",
   },
 
   errorText: {
-    textAlign: "center",
-    color: "#666666",
+    fontSize: 14,
+    color: "#777777",
     marginTop: 8,
-    lineHeight: 22,
+    textAlign: "center",
   },
 
   retryButton: {
-    marginTop: 20,
+    backgroundColor: "#111111",
+    borderRadius: 12,
     paddingHorizontal: 22,
     paddingVertical: 12,
-    borderRadius: 10,
-    backgroundColor: "#111111",
+    marginTop: 20,
   },
 
   retryText: {
@@ -291,19 +310,17 @@ const styles = StyleSheet.create({
   },
 
   emptyEmoji: {
-    fontSize: 40,
+    fontSize: 45,
   },
 
   emptyTitle: {
     fontSize: 20,
-    fontWeight: "700",
+    fontWeight: "800",
     marginTop: 15,
   },
 
   emptyText: {
-    textAlign: "center",
-    color: "#666666",
+    color: "#777777",
     marginTop: 8,
-    lineHeight: 22,
   },
 });

@@ -30,17 +30,18 @@ model User {
 
 
 model Job {
-  id           Int           @id @default(autoincrement())
-  title        String
-  company      String
-  location     String
-  type         String
-  description  String?
-  salary       String?
-  createdAt    DateTime      @default(now()) @map("created_at")
+  id          Int      @id @default(autoincrement())
+  title       String
+  company     String
+  location    String
+  type        String
+  experience  String?
+  description String?
+  salary      String?
+  createdAt   DateTime @default(now()) @map("created_at")
 
   applications Application[]
-  savedJobs     SavedJob[]
+  savedJobs    SavedJob[]
 
   @@map("jobs")
 }

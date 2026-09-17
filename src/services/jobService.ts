@@ -1,26 +1,29 @@
+import { Job } from "../types/job";
 import api from "./api";
 
-export interface Job {
-  id: number;
-  title: string;
-  company: string;
-  location: string;
-  type: string;
-  description?: string | null;
-  salary?: string | null;
-  createdAt?: string;
+export interface JobFilters {
+  search?: string;
+  location?: string;
+  experience?: string;
+  type?: string;
+  salary?: string;
 }
 
 interface JobsResponse {
   jobs: Job[];
+  count: number;
 }
 
 interface JobResponse {
   job: Job;
 }
 
-export const getJobs = async (): Promise<Job[]> => {
-  const response = await api.get<JobsResponse>("/jobs");
+export const getJobs = async (
+  filters?: JobFilters
+): Promise<Job[]> => {
+  const response = await api.get<JobsResponse>("/jobs", {
+    params: filters,
+  });
 
   return response.data.jobs;
 };
@@ -28,9 +31,7 @@ export const getJobs = async (): Promise<Job[]> => {
 export const getJobById = async (
   id: number
 ): Promise<Job> => {
-  const response = await api.get<JobResponse>(
-    `/jobs/${id}`
-  );
+  const response = await api.get<JobResponse>(`/jobs/${id}`);
 
   return response.data.job;
 };
@@ -38,10 +39,7 @@ export const getJobById = async (
 export const createJob = async (
   jobData: Omit<Job, "id" | "createdAt">
 ): Promise<Job> => {
-  const response = await api.post<JobResponse>(
-    "/jobs",
-    jobData
-  );
+  const response = await api.post<JobResponse>("/jobs", jobData);
 
   return response.data.job;
 };

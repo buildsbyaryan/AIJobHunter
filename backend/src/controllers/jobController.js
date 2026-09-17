@@ -1,12 +1,104 @@
 const prisma = require("../config/prisma");
 
 // =========================
-// GET ALL JOBS
+// GET ALL JOBS + SEARCH + FILTERS
 // =========================
 
 const getAllJobs = async (req, res) => {
   try {
+    const { search, location, experience, type, salary } = req.query;
+
+    const where = {};
+
+    // =========================
+    // SEARCH
+    // =========================
+
+    if (search && search.trim() !== "") {
+      where.OR = [
+        {
+          title: {
+            contains: search.trim(),
+            mode: "insensitive",
+          },
+        },
+        {
+          company: {
+            contains: search.trim(),
+            mode: "insensitive",
+          },
+        },
+        {
+          description: {
+            contains: search.trim(),
+            mode: "insensitive",
+          },
+        },
+      ];
+    }
+
+    // =========================
+    // LOCATION FILTER
+    // =========================
+
+    if (location && location !== "All") {
+      where.location = {
+        contains: location,
+        mode: "insensitive",
+      };
+    }
+
+    // =========================
+    // EXPERIENCE FILTER
+    // =========================
+
+    if (experience && experience !== "All") {
+      where.experience = {
+        contains: experience,
+        mode: "insensitive",
+      };
+    }
+
+    // =========================
+    // JOB TYPE FILTER
+    // =========================
+
+    if (type && type !== "All") {
+      where.type = {
+        equals: type,
+        mode: "insensitive",
+      };
+    }
+
+    // =========================
+    // SALARY FILTER
+    // =========================
+
+    if (salary && salary !== "All") {
+      if (salary === "0-3") {
+        where.salary = {
+          contains: "3",
+          mode: "insensitive",
+        };
+      }
+
+      if (salary === "3-5") {
+        where.salary = {
+          contains: "5",
+          mode: "insensitive",
+        };
+      }
+
+      if (salary === "5+") {
+        where.salary = {
+          contains: "5",
+          mode: "insensitive",
+        };
+      }
+    }
+
     const jobs = await prisma.job.findMany({
+      where,
       orderBy: {
         createdAt: "desc",
       },
@@ -14,16 +106,17 @@ const getAllJobs = async (req, res) => {
 
     res.status(200).json({
       message: "Jobs Fetched Successfully",
+      count: jobs.length,
       jobs,
     });
   } catch (error) {
     console.error("GET ALL JOBS ERROR:", error);
+
     res.status(500).json({
       message: "Failed to fetch jobs",
     });
   }
 };
-
 // =========================
 // GET SINGLE JOB
 // =========================

@@ -3,9 +3,11 @@ export interface Job {
   title: string;
   company: string;
   location: string;
-  type: string;
-  experience?: string | null;
-  description?: string | null;
+ experience?: string;
   salary?: string | null;
+  type?: string | null;
+  description?: string | null;
+  requirements?: string | null;
+  skills?: string[];
   createdAt?: string;
 }

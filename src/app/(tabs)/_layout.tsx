@@ -1,41 +1,33 @@
 import { Ionicons } from "@expo/vector-icons";
-import { Redirect, Tabs } from "expo-router";
-
-import { useAuth } from "../../context/AuthContext";
+import { Tabs } from "expo-router";
 
 export default function TabsLayout() {
-  const { isAuthenticated, loading } = useAuth();
-
-  if (loading) {
-    return null;
-  }
-
-  if (!isAuthenticated) {
-    return <Redirect href="/(auth)/login" />;
-  }
-
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
 
-        tabBarActiveTintColor: "#111111",
-        tabBarInactiveTintColor: "#999999",
+        tabBarActiveTintColor: "#4F46E5",
+        tabBarInactiveTintColor: "#9CA3AF",
 
         tabBarStyle: {
           height: 72,
           paddingTop: 8,
           paddingBottom: 10,
           borderTopWidth: 1,
-          borderTopColor: "#eeeeee",
-          backgroundColor: "#ffffff",
+          borderTopColor: "#E5E7EB",
+          backgroundColor: "#FFFFFF",
           elevation: 0,
           shadowOpacity: 0,
         },
 
         tabBarLabelStyle: {
-          fontSize: 12,
+          fontSize: 11,
           fontWeight: "600",
+        },
+
+        tabBarIconStyle: {
+          marginBottom: 2,
         },
       }}
     >
@@ -43,11 +35,24 @@ export default function TabsLayout() {
         name="index"
         options={{
           title: "Home",
-
           tabBarIcon: ({ color, focused }) => (
             <Ionicons
               name={focused ? "home" : "home-outline"}
-              size={24}
+              size={23}
+              color={color}
+            />
+          ),
+        }}
+      />
+
+      <Tabs.Screen
+        name="search"
+        options={{
+          title: "Search",
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons
+              name={focused ? "search" : "search-outline"}
+              size={23}
               color={color}
             />
           ),
@@ -58,11 +63,10 @@ export default function TabsLayout() {
         name="saved"
         options={{
           title: "Saved",
-
           tabBarIcon: ({ color, focused }) => (
             <Ionicons
               name={focused ? "bookmark" : "bookmark-outline"}
-              size={24}
+              size={23}
               color={color}
             />
           ),
@@ -73,11 +77,10 @@ export default function TabsLayout() {
         name="profile"
         options={{
           title: "Profile",
-
           tabBarIcon: ({ color, focused }) => (
             <Ionicons
               name={focused ? "person" : "person-outline"}
-              size={24}
+              size={23}
               color={color}
             />
           ),

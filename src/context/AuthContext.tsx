@@ -1,9 +1,9 @@
 import {
-    createContext,
-    ReactNode,
-    useContext,
-    useEffect,
-    useState,
+  createContext,
+  ReactNode,
+  useContext,
+  useEffect,
+  useState,
 } from "react";
 
 import { getToken, removeToken, saveToken } from "../services/authStorage";

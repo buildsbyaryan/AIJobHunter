@@ -1,69 +1,69 @@
-import { Ionicons } from "@expo/vector-icons";
-import { router } from "expo-router";
+import React from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
+import { Job } from "../types/job";
 
 interface JobCardProps {
-  id: string;
-  company: string;
-  title: string;
-  location: string;
-  salary: string;
-  type: string;
-  description?: string;
+  job: Job;
 }
 
-export default function JobCard({
-  id,
-  company,
-  title,
-  location,
-  salary,
-  type,
-  description,
-}: JobCardProps) {
+export default function JobCard({ job }: JobCardProps) {
+  const router = useRouter();
+
+  const { id, title, company, location, type, experience, salary } = job;
+
   return (
     <Pressable
       style={({ pressed }) => [styles.card, pressed && styles.pressed]}
       onPress={() => router.push(`/job/${id}`)}
     >
       <View style={styles.topRow}>
-        <View style={styles.companyIcon}>
-          <Text style={styles.companyLetter}>
-            {company.charAt(0).toUpperCase()}
+        <View style={styles.logo}>
+          <Text style={styles.logoText}>
+            {company?.charAt(0).toUpperCase() || "J"}
           </Text>
         </View>
 
-        <View style={styles.titleContainer}>
-          <Text style={styles.company} numberOfLines={1}>
-            {company}
-          </Text>
-
+        <View style={styles.content}>
           <Text style={styles.title} numberOfLines={2}>
             {title}
           </Text>
+
+          <Text style={styles.company}>{company}</Text>
         </View>
 
-        <Ionicons name="bookmark-outline" size={21} color="#999999" />
+        <Ionicons name="bookmark-outline" size={22} color="#777" />
       </View>
 
-      <View style={styles.detailsRow}>
-        <View style={styles.detail}>
-          <Ionicons name="location-outline" size={16} color="#777777" />
-          <Text style={styles.detailText} numberOfLines={1}>
-            {location}
-          </Text>
+      <View style={styles.infoRow}>
+        <View style={styles.infoItem}>
+          <Ionicons name="location-outline" size={16} color="#777" />
+
+          <Text style={styles.infoText}>{location}</Text>
         </View>
 
-        <View style={styles.detail}>
-          <Ionicons name="briefcase-outline" size={16} color="#777777" />
-          <Text style={styles.detailText}>{type}</Text>
+        <View style={styles.infoItem}>
+          <Ionicons name="briefcase-outline" size={16} color="#777" />
+
+          <Text style={styles.infoText}>{type}</Text>
         </View>
       </View>
 
       <View style={styles.bottomRow}>
-        <Text style={styles.salary}>{salary || "Salary not specified"}</Text>
+        <View>
+          {experience && (
+            <Text style={styles.experience}>{experience} years</Text>
+          )}
 
-        <Text style={styles.viewText}>View Details →</Text>
+          {salary && <Text style={styles.salary}>{salary}</Text>}
+        </View>
+
+        <View style={styles.detailsButton}>
+          <Text style={styles.detailsText}>View Details</Text>
+
+          <Ionicons name="arrow-forward" size={15} color="#111" />
+        </View>
       </View>
     </Pressable>
   );
@@ -72,15 +72,15 @@ export default function JobCard({
 const styles = StyleSheet.create({
   card: {
     backgroundColor: "#ffffff",
-    borderRadius: 18,
-    padding: 18,
-    marginBottom: 15,
     borderWidth: 1,
     borderColor: "#eeeeee",
+    borderRadius: 18,
+    padding: 16,
+    marginBottom: 14,
   },
 
   pressed: {
-    opacity: 0.7,
+    opacity: 0.75,
   },
 
   topRow: {
@@ -88,78 +88,85 @@ const styles = StyleSheet.create({
     alignItems: "flex-start",
   },
 
-  companyIcon: {
+  logo: {
     width: 46,
     height: 46,
-    borderRadius: 13,
+    borderRadius: 12,
     backgroundColor: "#111111",
-    alignItems: "center",
     justifyContent: "center",
+    alignItems: "center",
+    marginRight: 12,
   },
 
-  companyLetter: {
+  logoText: {
     color: "#ffffff",
     fontSize: 20,
     fontWeight: "800",
   },
 
-  titleContainer: {
+  content: {
     flex: 1,
-    marginLeft: 12,
-    marginRight: 10,
-  },
-
-  company: {
-    fontSize: 13,
-    color: "#777777",
-    fontWeight: "600",
   },
 
   title: {
-    fontSize: 17,
-    color: "#111111",
+    fontSize: 16,
     fontWeight: "800",
-    marginTop: 5,
+    color: "#111111",
+    marginBottom: 4,
   },
 
-  detailsRow: {
+  company: {
+    fontSize: 14,
+    color: "#666666",
+  },
+
+  infoRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    marginTop: 16,
+    gap: 14,
+  },
+
+  infoItem: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 18,
-    marginTop: 18,
   },
 
-  detail: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 5,
-    flexShrink: 1,
-  },
-
-  detailText: {
+  infoText: {
+    marginLeft: 5,
     fontSize: 13,
-    color: "#777777",
-    flexShrink: 1,
+    color: "#666666",
   },
 
   bottomRow: {
     flexDirection: "row",
-    alignItems: "center",
     justifyContent: "space-between",
-    marginTop: 18,
+    alignItems: "center",
+    marginTop: 16,
     paddingTop: 14,
     borderTopWidth: 1,
-    borderTopColor: "#eeeeee",
+    borderTopColor: "#f0f0f0",
+  },
+
+  experience: {
+    fontSize: 12,
+    color: "#777777",
+    marginBottom: 4,
   },
 
   salary: {
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: "700",
     color: "#111111",
-    flex: 1,
   },
 
-  viewText: {
+  detailsButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+  },
+
+  detailsText: {
     fontSize: 13,
     fontWeight: "700",
     color: "#111111",

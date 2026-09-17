@@ -16,14 +16,14 @@ datasource db {
 }
 
 model User {
-  id           Int           @id @default(autoincrement())
-  name         String
-  email        String        @unique
-  password     String
-  createdAt    DateTime      @default(now()) @map("created_at")
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now()) @map("created_at")
 
-  applications Application[]
   savedJobs     SavedJob[]
+  applications  Application[]
 
   @@map("users")
 }
@@ -40,8 +40,8 @@ model Job {
   salary      String?
   createdAt   DateTime @default(now()) @map("created_at")
 
-  applications Application[]
-  savedJobs    SavedJob[]
+  savedJobs     SavedJob[]
+  applications  Application[]
 
   @@map("jobs")
 }

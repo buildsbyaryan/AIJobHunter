@@ -3,6 +3,7 @@ const prisma = require("./config/prisma");
 const authRoutes = require("./routes/authRoutes");
 const profileRoutes = require("./routes/profileRoutes");
 const jobRoutes = require("./routes/jobRoutes");
+const savedJobRoutes = require("./routes/savedJobRoutes");
 
 const app = express();
 
@@ -12,8 +13,7 @@ app.use(express.json());
 app.use("/api/auth", authRoutes);
 app.use("/api/profile", profileRoutes);
 app.use("/api/jobs", jobRoutes);
-
-
+app.use("/api/saved-jobs", savedJobRoutes);
 
 // TEST API
 app.get("/api/test", (req, res) => {

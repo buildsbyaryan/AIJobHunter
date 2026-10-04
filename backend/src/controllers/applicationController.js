@@ -1,4 +1,3 @@
-
 const applicationService = require("../services/applicationService");
 
 const apply = async (req, res) => {
@@ -12,7 +11,15 @@ const apply = async (req, res) => {
       });
     }
 
-    if (!jobId || typeof jobId !== "string") {
+    const numericJobId = Number(jobId);
+
+    if (
+      jobId === undefined ||
+      jobId === null ||
+      jobId === "" ||
+      !Number.isInteger(numericJobId) ||
+      numericJobId <= 0
+    ) {
       return res.status(400).json({
         message: "A valid jobId is required",
       });
@@ -20,7 +27,7 @@ const apply = async (req, res) => {
 
     const application = await applicationService.applyForJob(
       userId,
-      jobId
+      numericJobId,
     );
 
     return res.status(201).json({
@@ -28,6 +35,8 @@ const apply = async (req, res) => {
       application,
     });
   } catch (error) {
+    console.error("APPLY ERROR:", error);
+
     return res.status(error.statusCode || 500).json({
       message: error.message || "Failed to submit application",
     });
@@ -44,8 +53,7 @@ const getMine = async (req, res) => {
       });
     }
 
-    const applications =
-      await applicationService.getMyApplications(userId);
+    const applications = await applicationService.getMyApplications(userId);
 
     return res.status(200).json({
       message: "Applications fetched successfully",
@@ -53,7 +61,9 @@ const getMine = async (req, res) => {
       count: applications.length,
     });
   } catch (error) {
-    return res.status(500).json({
+    console.error("GET APPLICATIONS ERROR:", error);
+
+    return res.status(error.statusCode || 500).json({
       message: error.message || "Failed to fetch applications",
     });
   }
@@ -69,11 +79,10 @@ const getOne = async (req, res) => {
       });
     }
 
-    const application =
-      await applicationService.getApplicationById(
-        userId,
-        req.params.id
-      );
+    const application = await applicationService.getApplicationById(
+      userId,
+      req.params.id,
+    );
 
     if (!application) {
       return res.status(404).json({
@@ -86,8 +95,36 @@ const getOne = async (req, res) => {
       application,
     });
   } catch (error) {
-    return res.status(500).json({
+    console.error("GET APPLICATION ERROR:", error);
+
+    return res.status(error.statusCode || 500).json({
       message: error.message || "Failed to fetch application",
+    });
+  }
+};
+
+const updateStatus = async (req, res) => {
+  try {
+    if (req.user?.role !== "admin") {
+      return res.status(403).json({
+        message: "Only an authorized admin can update application status",
+      });
+    }
+
+    const { status } = req.body;
+
+    const application = await applicationService.updateApplicationStatus(
+      req.params.id,
+      status,
+    );
+
+    return res.status(200).json({
+      message: "Application status updated successfully",
+      application,
+    });
+  } catch (error) {
+    return res.status(error.statusCode || 500).json({
+      message: error.message || "Failed to update application status",
     });
   }
 };
@@ -96,5 +133,5 @@ module.exports = {
   apply,
   getMine,
   getOne,
+  updateStatus,
 };
-

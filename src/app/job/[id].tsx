@@ -10,6 +10,7 @@ import {
   View,
 } from "react-native";
 
+import api from "@/services/api";
 import { useSavedJobs } from "../../context/SavedJobsContext";
 import { getJobById } from "../../services/jobService";
 import { Job } from "../../types/job";
@@ -25,13 +26,14 @@ export default function JobDetailsScreen() {
   const { savedJobs, saveJob, removeSavedJob } = useSavedJobs();
 
   const saved = job
-    ? savedJobs.some((savedJob) => savedJob.id === job.id)
+    ? savedJobs.some((savedJob) => String(savedJob.id) === String(job.id))
     : false;
 
   useEffect(() => {
     if (id) {
       fetchJob();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   const fetchJob = async () => {
@@ -44,29 +46,10 @@ export default function JobDetailsScreen() {
         throw new Error("Invalid job ID");
       }
 
-      console.log("=================================");
-      console.log("FETCH JOB DETAILS START");
-      console.log("JOB ID:", jobId);
-      console.log("=================================");
-
       const jobData = await getJobById(jobId);
-
-      console.log("JOB DETAILS SUCCESS:");
-      console.log(jobData);
-
       setJob(jobData);
     } catch (error: any) {
-      console.log("=================================");
-      console.log("FETCH JOB ERROR");
-      console.log("=================================");
-
-      if (error.response) {
-        console.log("STATUS:", error.response.status);
-        console.log("DATA:", error.response.data);
-      } else {
-        console.log("MESSAGE:", error.message);
-      }
-
+      console.log("FETCH JOB ERROR:", error.response?.data ?? error.message);
       Alert.alert("Error", "Unable to load job details.");
     } finally {
       setLoading(false);
@@ -97,23 +80,53 @@ export default function JobDetailsScreen() {
       }
     } catch (error) {
       console.log("SAVE JOB ERROR:", error);
-
       Alert.alert("Error", "Unable to update saved job.");
     }
   };
 
   const handleApply = async () => {
-    if (!job) return;
+    if (!job || applying) return;
 
     try {
       setApplying(true);
 
+      const jobId = Number(job.id);
+
+      if (!Number.isInteger(jobId) || jobId <= 0) {
+        Alert.alert("Error", "Invalid job ID.");
+        return;
+      }
+
+      console.log("APPLY REQUEST:", { jobId });
+
+      const response = await api.post("/applications", {
+        jobId: jobId,
+      });
+
+      console.log("APPLY RESPONSE:", response.data);
+
       Alert.alert(
-        "Apply Job",
-        `Application started for ${job.title} at ${job.company}.`,
+        "Application Submitted",
+        `You applied for ${job.title} at ${job.company}.`,
+        [
+          {
+            text: "View Applications",
+            onPress: () => router.push("/applications"),
+          },
+          { text: "Done", style: "cancel" },
+        ],
       );
-    } catch (error) {
-      console.log("APPLY ERROR:", error);
+    } catch (error: any) {
+      console.log(
+        "APPLY ERROR:",
+        error.response?.status,
+        error.response?.data ?? error.message,
+      );
+
+      Alert.alert(
+        "Application Failed",
+        error.response?.data?.message ?? "Unable to submit your application.",
+      );
     } finally {
       setApplying(false);
     }
@@ -123,7 +136,6 @@ export default function JobDetailsScreen() {
     return (
       <View style={styles.center}>
         <ActivityIndicator size="large" />
-
         <Text style={styles.loadingText}>Loading job...</Text>
       </View>
     );
@@ -146,7 +158,6 @@ export default function JobDetailsScreen() {
 
   return (
     <View style={styles.container}>
-      {/* HEADER */}
       <View style={styles.header}>
         <TouchableOpacity
           style={styles.headerButton}
@@ -166,7 +177,6 @@ export default function JobDetailsScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* JOB HEADER */}
         <View style={styles.jobHeader}>
           <View style={styles.companyLogo}>
             <Text style={styles.companyLogoText}>
@@ -176,60 +186,51 @@ export default function JobDetailsScreen() {
 
           <View style={styles.jobHeaderInfo}>
             <Text style={styles.title}>{job.title}</Text>
-
             <Text style={styles.company}>{job.company}</Text>
-
-            <Text style={styles.location}>📍 {job.location}</Text>
+            <Text style={styles.location}>
+              📍 {job.location ?? "Location not specified"}
+            </Text>
           </View>
         </View>
 
-        {/* JOB INFO */}
         <View style={styles.infoContainer}>
-          {job.experience && (
+          {!!job.experience && (
             <View style={styles.infoBox}>
               <Text style={styles.infoLabel}>Experience</Text>
-
               <Text style={styles.infoValue}>{job.experience}</Text>
             </View>
           )}
 
-          {job.salary && (
+          {!!job.salary && (
             <View style={styles.infoBox}>
               <Text style={styles.infoLabel}>Salary</Text>
-
               <Text style={styles.infoValue}>{job.salary}</Text>
             </View>
           )}
 
-          {job.type && (
+          {!!job.type && (
             <View style={styles.infoBox}>
               <Text style={styles.infoLabel}>Job Type</Text>
-
               <Text style={styles.infoValue}>{job.type}</Text>
             </View>
           )}
         </View>
 
-        {/* DESCRIPTION */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Job Description</Text>
-
           <Text style={styles.description}>
             {job.description || "No description available."}
           </Text>
         </View>
 
-        {/* REQUIREMENTS */}
-        {job.requirements && (
+        {!!job.requirements && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Requirements</Text>
-
             <Text style={styles.description}>{job.requirements}</Text>
           </View>
         )}
 
-        {/* SKILLS */}
-        {job.skills && job.skills.length > 0 && (
+        {!!job.skills && job.skills.length > 0 && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Skills</Text>
 
@@ -243,7 +244,6 @@ export default function JobDetailsScreen() {
           </View>
         )}
 
-        {/* SAVE BUTTON */}
         <TouchableOpacity
           style={[styles.saveButton, saved && styles.savedButton]}
           onPress={handleSaveJob}
@@ -253,9 +253,8 @@ export default function JobDetailsScreen() {
           </Text>
         </TouchableOpacity>
 
-        {/* APPLY BUTTON */}
         <TouchableOpacity
-          style={styles.applyButton}
+          style={[styles.applyButton, applying && styles.applyButtonDisabled]}
           onPress={handleApply}
           disabled={applying}
         >
@@ -275,7 +274,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#f5f7fb",
   },
-
   header: {
     height: 60,
     backgroundColor: "#fff",
@@ -286,33 +284,27 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: "#eee",
   },
-
   headerButton: {
     width: 42,
     height: 42,
     alignItems: "center",
     justifyContent: "center",
   },
-
   headerButtonText: {
     fontSize: 36,
     lineHeight: 40,
   },
-
   headerTitle: {
     fontSize: 18,
     fontWeight: "700",
   },
-
   saveIcon: {
     fontSize: 28,
   },
-
   scrollContent: {
     padding: 16,
     paddingBottom: 40,
   },
-
   jobHeader: {
     backgroundColor: "#fff",
     borderRadius: 16,
@@ -320,7 +312,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     marginBottom: 16,
   },
-
   companyLogo: {
     width: 60,
     height: 60,
@@ -330,39 +321,32 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     marginRight: 15,
   },
-
   companyLogoText: {
     fontSize: 26,
     fontWeight: "700",
   },
-
   jobHeaderInfo: {
     flex: 1,
   },
-
   title: {
     fontSize: 21,
     fontWeight: "700",
     marginBottom: 5,
   },
-
   company: {
     fontSize: 16,
     fontWeight: "600",
     marginBottom: 6,
   },
-
   location: {
     fontSize: 14,
   },
-
   infoContainer: {
     flexDirection: "row",
     flexWrap: "wrap",
     gap: 10,
     marginBottom: 16,
   },
-
   infoBox: {
     backgroundColor: "#fff",
     borderRadius: 12,
@@ -370,53 +354,44 @@ const styles = StyleSheet.create({
     minWidth: "30%",
     flex: 1,
   },
-
   infoLabel: {
     fontSize: 12,
     marginBottom: 5,
   },
-
   infoValue: {
     fontSize: 14,
     fontWeight: "700",
   },
-
   section: {
     backgroundColor: "#fff",
     borderRadius: 16,
     padding: 18,
     marginBottom: 16,
   },
-
   sectionTitle: {
     fontSize: 18,
     fontWeight: "700",
     marginBottom: 12,
   },
-
   description: {
     fontSize: 15,
     lineHeight: 24,
   },
-
   skillsContainer: {
     flexDirection: "row",
     flexWrap: "wrap",
     gap: 8,
   },
-
   skill: {
     paddingHorizontal: 12,
     paddingVertical: 8,
     backgroundColor: "#eef2ff",
     borderRadius: 20,
   },
-
   skillText: {
     fontSize: 13,
     fontWeight: "600",
   },
-
   saveButton: {
     height: 52,
     borderRadius: 12,
@@ -424,17 +399,15 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     marginBottom: 12,
+    backgroundColor: "#fff",
   },
-
   savedButton: {
     backgroundColor: "#f1f1f1",
   },
-
   saveButtonText: {
     fontSize: 16,
     fontWeight: "700",
   },
-
   applyButton: {
     height: 52,
     borderRadius: 12,
@@ -442,38 +415,36 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-
+  applyButtonDisabled: {
+    opacity: 0.65,
+  },
   applyButtonText: {
     color: "#fff",
     fontSize: 16,
     fontWeight: "700",
   },
-
   center: {
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: "#f5f7fb",
+    padding: 20,
   },
-
   loadingText: {
     marginTop: 10,
     fontSize: 15,
   },
-
   errorText: {
     fontSize: 18,
     fontWeight: "600",
     marginBottom: 20,
   },
-
   backButton: {
     paddingHorizontal: 20,
     paddingVertical: 12,
     borderRadius: 10,
     backgroundColor: "#000",
   },
-
   backButtonText: {
     color: "#fff",
     fontWeight: "600",

@@ -20,15 +20,14 @@ model User {
   name      String
   email     String   @unique
   password  String
+  role      String   @default("user")
   createdAt DateTime @default(now()) @map("created_at")
 
-  savedJobs     SavedJob[]
-  applications  Application[]
+  savedJobs    SavedJob[]
+  applications Application[]
 
   @@map("users")
 }
-
-
 model Job {
   id          Int      @id @default(autoincrement())
   title       String

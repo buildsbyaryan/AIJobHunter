@@ -1,56 +1,97 @@
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
-    FlatList,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  FlatList,
+  RefreshControl,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
-const jobs = [
-  {
-    id: "1",
-    title: "Flutter Developer",
-    company: "TechNova",
-    location: "Remote",
-    type: "Full Time",
-    salary: "₹6–10 LPA",
-  },
-  {
-    id: "2",
-    title: "React Native Developer",
-    company: "StartupHub",
-    location: "Bangalore",
-    type: "Full Time",
-    salary: "₹7–12 LPA",
-  },
-  {
-    id: "3",
-    title: "Java Backend Developer",
-    company: "CloudWorks",
-    location: "Hyderabad",
-    type: "Full Time",
-    salary: "₹8–14 LPA",
-  },
-];
+import api from "@/services/api";
+
+interface Job {
+  id: number;
+  title: string;
+  company: string;
+  location: string;
+  type: string;
+  salary?: string | null;
+  experience?: string | null;
+  description?: string | null;
+}
 
 export default function SearchScreen() {
   const [query, setQuery] = useState("");
+  const [jobs, setJobs] = useState<Job[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState("");
+
+  const loadJobs = useCallback(async (refresh = false) => {
+    try {
+      setError("");
+
+      if (refresh) {
+        setRefreshing(true);
+      } else {
+        setLoading(true);
+      }
+
+      const response = await api.get("/jobs");
+
+      console.log("JOBS API:", response.data);
+
+      const data = response.data?.jobs;
+
+      setJobs(Array.isArray(data) ? data : []);
+    } catch (error: any) {
+      console.log("LOAD JOBS ERROR:", error.response?.data ?? error.message);
+
+      setError(error.response?.data?.message ?? "Unable to load jobs.");
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadJobs();
+  }, [loadJobs]);
 
   const filteredJobs = jobs.filter((job) => {
-    const text = `${job.title} ${job.company} ${job.location}`.toLowerCase();
+    const text = `
+      ${job.title}
+      ${job.company}
+      ${job.location}
+      ${job.type}
+      ${job.experience ?? ""}
+    `.toLowerCase();
 
     return text.includes(query.toLowerCase());
   });
 
+  if (loading) {
+    return (
+      <View style={styles.center}>
+        <ActivityIndicator size="large" color="#4F46E5" />
+
+        <Text style={styles.loadingText}>Loading jobs...</Text>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
+      {/* Header */}
       <View style={styles.header}>
         <View>
           <Text style={styles.smallTitle}>AI JOB HUNTER</Text>
+
           <Text style={styles.title}>Find your next job</Text>
         </View>
 
@@ -59,6 +100,7 @@ export default function SearchScreen() {
         </View>
       </View>
 
+      {/* Search */}
       <View style={styles.searchBox}>
         <Ionicons name="search-outline" size={21} color="#9CA3AF" />
 
@@ -77,70 +119,100 @@ export default function SearchScreen() {
         )}
       </View>
 
+      {/* Filters */}
       <View style={styles.filterRow}>
-        <TouchableOpacity style={styles.filterActive}>
+        <View style={styles.filterActive}>
           <Text style={styles.filterActiveText}>All Jobs</Text>
-        </TouchableOpacity>
+        </View>
 
-        <TouchableOpacity style={styles.filter}>
+        <View style={styles.filter}>
           <Text style={styles.filterText}>Remote</Text>
-        </TouchableOpacity>
+        </View>
 
-        <TouchableOpacity style={styles.filter}>
+        <View style={styles.filter}>
           <Text style={styles.filterText}>Full Time</Text>
-        </TouchableOpacity>
+        </View>
       </View>
 
+      {/* Result count */}
       <Text style={styles.resultText}>{filteredJobs.length} jobs found</Text>
 
-      <FlatList
-        data={filteredJobs}
-        keyExtractor={(item) => item.id}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 30 }}
-        renderItem={({ item }) => (
+      {/* Error */}
+      {error ? (
+        <View style={styles.errorContainer}>
+          <Ionicons name="alert-circle-outline" size={40} color="#DC2626" />
+
+          <Text style={styles.errorText}>{error}</Text>
+
           <TouchableOpacity
-            style={styles.jobCard}
-            activeOpacity={0.8}
-            onPress={() => router.push(`/job/${item.id}`)}
+            style={styles.retryButton}
+            onPress={() => loadJobs()}
           >
-            <View style={styles.companyLogo}>
-              <Text style={styles.logoText}>{item.company.charAt(0)}</Text>
-            </View>
-
-            <View style={styles.jobInfo}>
-              <Text style={styles.jobTitle}>{item.title}</Text>
-
-              <Text style={styles.company}>{item.company}</Text>
-
-              <View style={styles.metaRow}>
-                <Ionicons name="location-outline" size={14} color="#6B7280" />
-
-                <Text style={styles.metaText}>{item.location}</Text>
-
-                <Text style={styles.dot}>•</Text>
-
-                <Text style={styles.metaText}>{item.type}</Text>
+            <Text style={styles.retryText}>Try Again</Text>
+          </TouchableOpacity>
+        </View>
+      ) : (
+        <FlatList
+          data={filteredJobs}
+          keyExtractor={(item) => String(item.id)}
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={() => loadJobs(true)}
+            />
+          }
+          contentContainerStyle={{
+            paddingBottom: 30,
+          }}
+          renderItem={({ item }) => (
+            <TouchableOpacity
+              style={styles.jobCard}
+              activeOpacity={0.8}
+              onPress={() => router.push(`/job/${item.id}`)}
+            >
+              <View style={styles.companyLogo}>
+                <Text style={styles.logoText}>
+                  {item.company?.charAt(0)?.toUpperCase() || "J"}
+                </Text>
               </View>
 
-              <Text style={styles.salary}>{item.salary}</Text>
+              <View style={styles.jobInfo}>
+                <Text style={styles.jobTitle}>{item.title}</Text>
+
+                <Text style={styles.company}>{item.company}</Text>
+
+                <View style={styles.metaRow}>
+                  <Ionicons name="location-outline" size={14} color="#6B7280" />
+
+                  <Text style={styles.metaText}>{item.location}</Text>
+
+                  <Text style={styles.dot}>•</Text>
+
+                  <Text style={styles.metaText}>{item.type}</Text>
+                </View>
+
+                {item.salary ? (
+                  <Text style={styles.salary}>{item.salary}</Text>
+                ) : null}
+              </View>
+
+              <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
+            </TouchableOpacity>
+          )}
+          ListEmptyComponent={
+            <View style={styles.empty}>
+              <Ionicons name="search-outline" size={45} color="#D1D5DB" />
+
+              <Text style={styles.emptyTitle}>No jobs found</Text>
+
+              <Text style={styles.emptyText}>
+                Try searching for another role or skill.
+              </Text>
             </View>
-
-            <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
-          </TouchableOpacity>
-        )}
-        ListEmptyComponent={
-          <View style={styles.empty}>
-            <Ionicons name="search-outline" size={45} color="#D1D5DB" />
-
-            <Text style={styles.emptyTitle}>No jobs found</Text>
-
-            <Text style={styles.emptyText}>
-              Try searching for another role or skill.
-            </Text>
-          </View>
-        }
-      />
+          }
+        />
+      )}
     </View>
   );
 }
@@ -151,6 +223,18 @@ const styles = StyleSheet.create({
     backgroundColor: "#F8FAFC",
     paddingHorizontal: 20,
     paddingTop: 55,
+  },
+
+  center: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#F8FAFC",
+  },
+
+  loadingText: {
+    marginTop: 12,
+    color: "#6B7280",
   },
 
   header: {
@@ -308,6 +392,32 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: "#059669",
     marginTop: 7,
+  },
+
+  errorContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 70,
+    paddingHorizontal: 20,
+  },
+
+  errorText: {
+    color: "#DC2626",
+    textAlign: "center",
+    marginTop: 10,
+  },
+
+  retryButton: {
+    backgroundColor: "#4F46E5",
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 10,
+    marginTop: 15,
+  },
+
+  retryText: {
+    color: "#FFFFFF",
+    fontWeight: "700",
   },
 
   empty: {

@@ -14,7 +14,7 @@ app.use(express.json());
 app.use("/api/auth", authRoutes);
 app.use("/api/profile", profileRoutes);
 app.use("/api/jobs", jobRoutes);
-app.use("/api/saved-jobs", savedJobRoutes);
+app.use("/api/v1/saved-jobs", savedJobRoutes);
 app.use("/api/applications", applicationRoutes);
 
 // TEST API

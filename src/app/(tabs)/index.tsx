@@ -7,6 +7,7 @@ import {
   Text,
   View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { useDebounce } from "../../hooks/useDebounce";
 
 import ErrorMessage from "../../components/ErrorMessage";
@@ -21,6 +22,7 @@ export default function HomeScreen() {
 
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebounce(search, 500);
+
   const [location, setLocation] = useState("All");
   const [experience, setExperience] = useState("All");
   const [type, setType] = useState("All");
@@ -43,13 +45,9 @@ export default function HomeScreen() {
 
         const data = await getJobs({
           search: debouncedSearch.trim() || undefined,
-
           location: location !== "All" ? location : undefined,
-
           experience: experience !== "All" ? experience : undefined,
-
           type: type !== "All" ? type : undefined,
-
           salary: salary !== "All" ? salary : undefined,
         });
 
@@ -68,7 +66,7 @@ export default function HomeScreen() {
 
   useEffect(() => {
     loadJobs();
-  }, [debouncedSearch, location, experience, type, salary]);
+  }, [loadJobs]);
 
   const clearFilters = () => {
     setSearch("");
@@ -113,65 +111,86 @@ export default function HomeScreen() {
     </View>
   );
 
+  // Initial loading
   if (loading && jobs.length === 0) {
     return (
-      <View style={styles.center}>
-        <ActivityIndicator size="large" color="#111" />
+      <SafeAreaView
+        style={styles.safeArea}
+        edges={["top", "left", "right", "bottom"]}
+      >
+        <View style={styles.center}>
+          <ActivityIndicator size="large" color="#111" />
 
-        <Text style={styles.loadingText}>Searching jobs...</Text>
-      </View>
+          <Text style={styles.loadingText}>Searching jobs...</Text>
+        </View>
+      </SafeAreaView>
     );
   }
 
+  // Error
   if (error && jobs.length === 0) {
     return (
-      <View style={styles.center}>
-        <ErrorMessage message={error} />
+      <SafeAreaView
+        style={styles.safeArea}
+        edges={["top", "left", "right", "bottom"]}
+      >
+        <View style={styles.center}>
+          <ErrorMessage message={error} />
 
-        <Text style={styles.retry} onPress={() => loadJobs()}>
-          Try Again
-        </Text>
-      </View>
+          <Text style={styles.retry} onPress={() => loadJobs()}>
+            Try Again
+          </Text>
+        </View>
+      </SafeAreaView>
     );
   }
 
   return (
-    <View style={styles.container}>
-      <FlatList
-        data={jobs}
-        keyExtractor={(item) => String(item.id)}
-        renderItem={({ item }) => <JobCard job={item} />}
-        ListHeaderComponent={renderHeader}
-        ListEmptyComponent={
-          <View style={styles.empty}>
-            <Text style={styles.emptyTitle}>No Jobs Found</Text>
+    <SafeAreaView style={styles.safeArea} edges={["top", "left", "right"]}>
+      <View style={styles.container}>
+        <FlatList
+          data={jobs}
+          keyExtractor={(item) => String(item.id)}
+          renderItem={({ item }) => <JobCard job={item} />}
+          ListHeaderComponent={renderHeader}
+          ListEmptyComponent={
+            <View style={styles.empty}>
+              <Text style={styles.emptyTitle}>No Jobs Found</Text>
 
-            <Text style={styles.emptyText}>
-              Try changing your search or filters.
-            </Text>
-          </View>
-        }
-        contentContainerStyle={styles.content}
-        showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={() => loadJobs(true)}
-          />
-        }
-      />
-    </View>
+              <Text style={styles.emptyText}>
+                Try changing your search or filters.
+              </Text>
+            </View>
+          }
+          contentContainerStyle={styles.content}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={() => loadJobs(true)}
+            />
+          }
+        />
+      </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: "#ffffff",
+  },
+
   container: {
     flex: 1,
     backgroundColor: "#ffffff",
   },
 
   content: {
-    padding: 20,
+    paddingHorizontal: 20,
+    paddingTop: 10,
     paddingBottom: 30,
   },
 
@@ -221,12 +240,12 @@ const styles = StyleSheet.create({
 
   loadingText: {
     marginTop: 12,
-    color: "#777",
+    color: "#777777",
   },
 
   retry: {
     marginTop: 15,
-    color: "#111",
+    color: "#111111",
     fontWeight: "700",
   },
 
@@ -238,12 +257,12 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 18,
     fontWeight: "700",
-    color: "#111",
+    color: "#111111",
   },
 
   emptyText: {
     fontSize: 14,
-    color: "#777",
+    color: "#777777",
     marginTop: 8,
   },
 });

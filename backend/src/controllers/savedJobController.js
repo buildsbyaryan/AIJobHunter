@@ -6,16 +6,22 @@ const prisma = require("../config/prisma");
 
 const saveJob = async (req, res) => {
   try {
-    const userId = req.user.userId;
+    const userId = Number(req.user?.userId || req.user?.id);
     const jobId = Number(req.params.jobId);
 
-    if (Number.isNaN(jobId)) {
+    if (!Number.isInteger(userId) || userId <= 0) {
+      return res.status(401).json({
+        message: "Invalid or missing user authentication",
+      });
+    }
+
+    if (!Number.isInteger(jobId) || jobId <= 0) {
       return res.status(400).json({
         message: "Invalid job ID",
       });
     }
 
-    // Check whether job exists
+    // Check job
     const job = await prisma.job.findUnique({
       where: {
         id: jobId,
@@ -28,7 +34,7 @@ const saveJob = async (req, res) => {
       });
     }
 
-    // Check duplicate save
+    // Check duplicate
     const existingSavedJob = await prisma.savedJob.findUnique({
       where: {
         userId_jobId: {
@@ -41,6 +47,7 @@ const saveJob = async (req, res) => {
     if (existingSavedJob) {
       return res.status(409).json({
         message: "Job already saved",
+        saved: true,
       });
     }
 
@@ -54,14 +61,15 @@ const saveJob = async (req, res) => {
       },
     });
 
-    res.status(201).json({
+    return res.status(201).json({
       message: "Job saved successfully",
+      saved: true,
       savedJob,
     });
   } catch (error) {
     console.error("SAVE JOB ERROR:", error);
 
-    res.status(500).json({
+    return res.status(500).json({
       message: "Failed to save job",
     });
   }
@@ -73,7 +81,13 @@ const saveJob = async (req, res) => {
 
 const getSavedJobs = async (req, res) => {
   try {
-    const userId = req.user.userId;
+    const userId = Number(req.user?.userId || req.user?.id);
+
+    if (!Number.isInteger(userId) || userId <= 0) {
+      return res.status(401).json({
+        message: "Invalid or missing user authentication",
+      });
+    }
 
     const savedJobs = await prisma.savedJob.findMany({
       where: {
@@ -87,17 +101,15 @@ const getSavedJobs = async (req, res) => {
       },
     });
 
-    const jobs = savedJobs.map((item) => item.job);
-
-    res.status(200).json({
+    return res.status(200).json({
       message: "Saved jobs fetched successfully",
-      count: jobs.length,
-      jobs,
+      count: savedJobs.length,
+      savedJobs,
     });
   } catch (error) {
     console.error("GET SAVED JOBS ERROR:", error);
 
-    res.status(500).json({
+    return res.status(500).json({
       message: "Failed to fetch saved jobs",
     });
   }
@@ -109,10 +121,16 @@ const getSavedJobs = async (req, res) => {
 
 const unsaveJob = async (req, res) => {
   try {
-    const userId = req.user.userId;
+    const userId = Number(req.user?.userId || req.user?.id);
     const jobId = Number(req.params.jobId);
 
-    if (Number.isNaN(jobId)) {
+    if (!Number.isInteger(userId) || userId <= 0) {
+      return res.status(401).json({
+        message: "Invalid or missing user authentication",
+      });
+    }
+
+    if (!Number.isInteger(jobId) || jobId <= 0) {
       return res.status(400).json({
         message: "Invalid job ID",
       });
@@ -130,6 +148,7 @@ const unsaveJob = async (req, res) => {
     if (!savedJob) {
       return res.status(404).json({
         message: "Saved job not found",
+        saved: false,
       });
     }
 
@@ -142,28 +161,35 @@ const unsaveJob = async (req, res) => {
       },
     });
 
-    res.status(200).json({
+    return res.status(200).json({
       message: "Job removed from saved jobs",
+      saved: false,
     });
   } catch (error) {
     console.error("UNSAVE JOB ERROR:", error);
 
-    res.status(500).json({
+    return res.status(500).json({
       message: "Failed to remove saved job",
     });
   }
 };
 
 // =========================
-// CHECK WHETHER JOB IS SAVED
+// CHECK SAVED JOB
 // =========================
 
 const checkSavedJob = async (req, res) => {
   try {
-    const userId = req.user.userId;
+    const userId = Number(req.user?.userId || req.user?.id);
     const jobId = Number(req.params.jobId);
 
-    if (Number.isNaN(jobId)) {
+    if (!Number.isInteger(userId) || userId <= 0) {
+      return res.status(401).json({
+        message: "Invalid or missing user authentication",
+      });
+    }
+
+    if (!Number.isInteger(jobId) || jobId <= 0) {
       return res.status(400).json({
         message: "Invalid job ID",
       });
@@ -178,13 +204,13 @@ const checkSavedJob = async (req, res) => {
       },
     });
 
-    res.status(200).json({
+    return res.status(200).json({
       saved: Boolean(savedJob),
     });
   } catch (error) {
     console.error("CHECK SAVED JOB ERROR:", error);
 
-    res.status(500).json({
+    return res.status(500).json({
       message: "Failed to check saved job",
     });
   }

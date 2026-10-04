@@ -1,6 +1,8 @@
 const express = require("express");
 
-const protect = require("../middleware/authMiddleware");
+const router = express.Router();
+
+const authMiddleware = require("../middleware/authMiddleware");
 
 const {
   saveJob,
@@ -9,18 +11,19 @@ const {
   checkSavedJob,
 } = require("../controllers/savedJobController");
 
-const router = express.Router();
+// All saved-job routes require login
+router.use(authMiddleware);
 
-// Save a job
-router.post("/:jobId", protect, saveJob);
+// GET all saved jobs
+router.get("/", getSavedJobs);
 
-// Get logged-in user's saved jobs
-router.get("/", protect, getSavedJobs);
+// CHECK whether job is saved
+router.get("/:jobId/check", checkSavedJob);
 
-// Check whether a job is saved
-router.get("/:jobId/check", protect, checkSavedJob);
+// SAVE job
+router.post("/:jobId", saveJob);
 
-// Remove a saved job
-router.delete("/:jobId", protect, unsaveJob);
+// UNSAVE job
+router.delete("/:jobId", unsaveJob);
 
 module.exports = router;

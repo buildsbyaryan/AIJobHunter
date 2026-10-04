@@ -1,4 +1,3 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   createContext,
   ReactNode,
@@ -7,7 +6,10 @@ import {
   useState,
 } from "react";
 
-interface Job {
+import api from "@/services/api";
+import { getUserId } from "@/services/authStorage";
+
+export interface Job {
   id: number;
   title: string;
   company: string;
@@ -15,24 +17,38 @@ interface Job {
   experience?: string;
   salary?: string;
   jobType?: string;
+  type?: string;
   description?: string;
   requirements?: string;
   skills?: string[];
   createdAt?: string;
 }
 
+export interface SavedJob {
+  id: number;
+  userId: number;
+  jobId: number;
+  createdAt?: string;
+  job?: Job;
+}
+
 interface SavedJobsContextType {
   savedJobs: Job[];
+
   saveJob: (job: Job) => Promise<void>;
+
   removeSavedJob: (jobId: number) => Promise<void>;
+
   isSaved: (jobId: number) => boolean;
+
+  refreshSavedJobs: () => Promise<void>;
+
+  loading: boolean;
 }
 
 const SavedJobsContext = createContext<SavedJobsContextType | undefined>(
   undefined,
 );
-
-const STORAGE_KEY = "saved_jobs";
 
 interface Props {
   children: ReactNode;
@@ -40,99 +56,194 @@ interface Props {
 
 export function SavedJobsProvider({ children }: Props) {
   const [savedJobs, setSavedJobs] = useState<Job[]>([]);
-  const [loaded, setLoaded] = useState(false);
 
-  // Load saved jobs
+  const [loading, setLoading] = useState(true);
+
+  // =========================
+  // GET SAVED JOBS
+  // =========================
+
+  const loadSavedJobs = async () => {
+    try {
+      setLoading(true);
+
+      const userId = await getUserId();
+
+      console.log("=================================");
+
+      console.log("GET SAVED JOBS");
+
+      console.log("USER ID:", userId);
+
+      console.log("=================================");
+
+      if (!userId) {
+        console.log("USER ID NOT FOUND");
+
+        setSavedJobs([]);
+
+        return;
+      }
+
+      const response = await api.get("/saved-jobs");
+
+      console.log("GET SAVED JOBS STATUS:", response.status);
+
+      console.log("GET SAVED JOBS RESPONSE:", response.data);
+
+      // Backend directly returns array
+      const data = response.data;
+
+      if (!Array.isArray(data)) {
+        console.log("INVALID SAVED JOBS RESPONSE");
+
+        setSavedJobs([]);
+
+        return;
+      }
+
+      // Current user's saved jobs
+      const currentUserSavedJobs = data.filter(
+        (item: SavedJob) => Number(item.userId) === Number(userId) && item.job,
+      );
+
+      const jobs = currentUserSavedJobs.map(
+        (item: SavedJob) => item.job as Job,
+      );
+
+      console.log("CURRENT USER SAVED JOBS:", currentUserSavedJobs);
+
+      console.log("TOTAL:", jobs.length);
+
+      setSavedJobs(jobs);
+    } catch (error: any) {
+      console.log(
+        "GET SAVED JOBS ERROR:",
+        error.response?.status,
+        error.response?.data ?? error.message,
+      );
+
+      setSavedJobs([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // =========================
+  // INITIAL LOAD
+  // =========================
+
   useEffect(() => {
     loadSavedJobs();
   }, []);
 
-  const loadSavedJobs = async () => {
-    try {
-      const data = await AsyncStorage.getItem(STORAGE_KEY);
+  // =========================
+  // POST SAVE JOB
+  // =========================
 
-      if (data) {
-        const parsedData = JSON.parse(data);
-
-        if (Array.isArray(parsedData)) {
-          setSavedJobs(parsedData);
-        }
-      }
-    } catch (error) {
-      console.log("LOAD SAVED JOBS ERROR:", error);
-    } finally {
-      setLoaded(true);
-    }
-  };
-
-  // Save jobs to AsyncStorage
-  const persistJobs = async (jobs: Job[]) => {
-    try {
-      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(jobs));
-    } catch (error) {
-      console.log("PERSIST SAVED JOBS ERROR:", error);
-    }
-  };
-
-  // Save Job
   const saveJob = async (job: Job) => {
     try {
-      setSavedJobs((currentJobs) => {
-        const alreadySaved = currentJobs.some((item) => item.id === job.id);
+      const userId = await getUserId();
 
-        if (alreadySaved) {
-          return currentJobs;
-        }
+      const jobId = Number(job.id);
 
-        const updatedJobs = [job, ...currentJobs];
+      console.log("=================================");
 
-        persistJobs(updatedJobs);
+      console.log("SAVE JOB");
 
-        return updatedJobs;
+      console.log("USER ID:", userId);
+
+      console.log("JOB ID:", jobId);
+
+      console.log("=================================");
+
+      if (!userId) {
+        throw new Error("User ID not found. Please login again.");
+      }
+
+      if (!Number.isInteger(jobId) || jobId <= 0) {
+        throw new Error("Invalid job ID.");
+      }
+
+      // POST
+      const response = await api.post("/saved-jobs", {
+        userId,
+        jobId,
       });
-    } catch (error) {
-      console.log("SAVE JOB ERROR:", error);
+
+      console.log("SAVE JOB STATUS:", response.status);
+
+      console.log("SAVE JOB RESPONSE:", response.data);
+
+      // Refresh from backend
+      await loadSavedJobs();
+
+      console.log("JOB SAVED SUCCESSFULLY");
+    } catch (error: any) {
+      console.log(
+        "SAVE JOB ERROR:",
+        error.response?.status,
+        error.response?.data ?? error.message,
+      );
+
       throw error;
     }
   };
 
-  // Remove Saved Job
+  // =========================
+  // DELETE SAVED JOB
+  // =========================
+
   const removeSavedJob = async (jobId: number) => {
     try {
-      setSavedJobs((currentJobs) => {
-        const updatedJobs = currentJobs.filter((job) => job.id !== jobId);
+      const userId = await getUserId();
 
-        persistJobs(updatedJobs);
+      if (!userId) {
+        throw new Error("User ID is not available.");
+      }
 
-        return updatedJobs;
+      const numericJobId = Number(jobId);
+
+      console.log("REMOVE SAVED JOB:", {
+        jobId: numericJobId,
+        userId,
       });
-    } catch (error) {
-      console.log("REMOVE SAVED JOB ERROR:", error);
+
+      await api.delete(`/saved-jobs/${numericJobId}`, {
+        data: {
+          userId,
+        },
+      });
+
+      console.log("SAVED JOB REMOVED SUCCESSFULLY");
+
+      await loadSavedJobs();
+    } catch (error: any) {
+      console.log(
+        "REMOVE SAVED JOB ERROR:",
+        error.response?.status,
+        error.response?.data || error.message,
+      );
+
       throw error;
     }
   };
 
-  // Check if Job is Saved
+  // =========================
+  // CHECK SAVED
+  // =========================
+
   const isSaved = (jobId: number) => {
-    return savedJobs.some((job) => job.id === jobId);
+    return savedJobs.some((job) => Number(job.id) === Number(jobId));
   };
 
-  // Provider load hone tak children render kar sakte hain,
-  // but savedJobs initially [] rahega.
-  if (!loaded) {
-    return (
-      <SavedJobsContext.Provider
-        value={{
-          savedJobs: [],
-          saveJob,
-          removeSavedJob,
-          isSaved,
-        }}
-      >
-        {children}
-      </SavedJobsContext.Provider>
-    );
-  }
+  // =========================
+  // REFRESH
+  // =========================
+
+  const refreshSavedJobs = async () => {
+    await loadSavedJobs();
+  };
 
   return (
     <SavedJobsContext.Provider
@@ -141,6 +252,8 @@ export function SavedJobsProvider({ children }: Props) {
         saveJob,
         removeSavedJob,
         isSaved,
+        refreshSavedJobs,
+        loading,
       }}
     >
       {children}

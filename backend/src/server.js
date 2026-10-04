@@ -4,6 +4,7 @@ const authRoutes = require("./routes/authRoutes");
 const profileRoutes = require("./routes/profileRoutes");
 const jobRoutes = require("./routes/jobRoutes");
 const savedJobRoutes = require("./routes/savedJobRoutes");
+const applicationRoutes = require("./routes/applicationRoutes");
 
 const app = express();
 
@@ -14,6 +15,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/profile", profileRoutes);
 app.use("/api/jobs", jobRoutes);
 app.use("/api/saved-jobs", savedJobRoutes);
+app.use("/api/applications", applicationRoutes);
 
 // TEST API
 app.get("/api/test", (req, res) => {
